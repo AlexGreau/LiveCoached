@@ -25,6 +25,11 @@ public class MainActivity extends WearableActivity {
         setContentView(R.layout.activity_main);
         initSensors();
         initTestText();
+        initButtons();
+    }
+
+    private void initButtons() {
+
     }
 
     private void initTestText() {

@@ -7,9 +7,10 @@
     android:background="@color/dark_grey"
     android:padding="@dimen/box_inset_layout_padding"
     tools:context=".MainActivity"
-    tools:deviceIds="wear">
+    tools:deviceIds="wear"
+    >
 
-    <androidx.wear.widget.BoxInsetLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="@dimen/inner_frame_layout_padding"
@@ -21,5 +22,15 @@
             android:layout_height="wrap_content"
             android:text="@string/hello_world" />
 
-    </androidx.wear.widget.BoxInsetLayout>
+        <Button
+            android:id="@+id/button_vibrate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="vibrate"
+            android:layout_below="@id/text"
+            android:layout_centerInParent="true"/>
+
+
+    </RelativeLayout>
 </androidx.wear.widget.BoxInsetLayout>
