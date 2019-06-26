@@ -5,17 +5,13 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.provider.ContactsContract;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
-import java.util.List;
 
 public class MainActivity extends WearableActivity implements SensorEventListener {
 
@@ -23,9 +19,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private SensorManager sensorManager;
     private Button vibrateButton;
     private ImageButton sendButton;
-    private Button orientationButton;
+    private Button magneticButton;
 
     private Sensor geomagenticSensor;
+    private boolean print;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +37,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         initTestText();
         initButtons();
         initConnection();
+        print = true;
     }
 
     private void initButtons() {
         initVibrateButton();
         initSendingButton();
-        initOrientationButton();
+        initMagneticButton();
     }
 
     private void initTestText() {
@@ -55,7 +53,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void initSensors() {
         System.out.println("printing sensors");
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
+        // List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
         geomagenticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         sensorManager.registerListener(this, geomagenticSensor, SensorManager.SENSOR_DELAY_FASTEST);
         System.out.println(geomagenticSensor);
@@ -81,10 +79,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         });
     }
 
-    public void initOrientationButton() {
-        orientationButton = (Button) findViewById(R.id.button_magnetic);
-        orientationButton.setText("Give Orientation");
-        orientationButton.setOnClickListener(new View.OnClickListener() {
+    public void initMagneticButton() {
+        magneticButton = (Button) findViewById(R.id.button_magnetic);
+        magneticButton.setText("Give Orientation");
+        magneticButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String text = getMagneticInfos();
@@ -125,7 +123,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        
+        float geoX = event.values[0];
+        float geoY = event.values[1];
+        float geoZ = event.values[2];
+        if (print) {
+            mTextView.setText("X : " + geoX +", Y : " + geoY + ", Z : " + geoZ);
+            print = false;
+        }
     }
 
     @Override
