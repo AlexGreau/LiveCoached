@@ -85,8 +85,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         magneticButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                print = true;
+                /*
                 String text = getMagneticInfos();
                 mTextView.setText(text);
+                */
             }
         });
     }
@@ -114,6 +117,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         if (geomagenticSensor != null) {
             // Success! There's a magnetometer.
             s = geomagenticSensor.getName();
+            print = true;
         } else {
             // Failure! No magnetometer.
             s = "Sorry but there is no magnetometer on this device";
