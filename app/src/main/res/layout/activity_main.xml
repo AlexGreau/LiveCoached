@@ -27,7 +27,8 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/text">
+            android:layout_below="@id/text"
+            android:id="@+id/layout_buttons">
 
             <Button
                 android:id="@+id/button_vibrate"
@@ -46,6 +47,13 @@
                 android:layout_alignTop="@+id/button_vibrate"
                 />
         </RelativeLayout>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/button_magnetic"
+            android:layout_below="@id/layout_buttons"
+            />
 
     </RelativeLayout>
 </androidx.wear.widget.BoxInsetLayout>

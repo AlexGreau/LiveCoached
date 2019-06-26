@@ -2,6 +2,7 @@ package com.example.livecoached;
 
 import android.content.Context;
 import android.hardware.Sensor;
+import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.media.Image;
 import android.os.Bundle;
@@ -19,6 +20,9 @@ public class MainActivity extends WearableActivity {
 
     private TextView mTextView;
     private SensorManager sensorManager;
+    private Button vibrateButton;
+    private ImageButton sendButton;
+    private Button orientationButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +42,7 @@ public class MainActivity extends WearableActivity {
     private void initButtons() {
         initVibrateButton();
         initSendingButton();
+        initOrientationButton();
     }
 
     private void initTestText() {
@@ -52,7 +57,7 @@ public class MainActivity extends WearableActivity {
     }
 
     public void initSendingButton(){
-        ImageButton sendButton = (ImageButton) findViewById(R.id.button_send);
+        sendButton = (ImageButton) findViewById(R.id.button_send);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,11 +67,23 @@ public class MainActivity extends WearableActivity {
     }
 
     public void initVibrateButton(){
-        Button vibrateButton = (Button) findViewById(R.id.button_vibrate);
+        vibrateButton = (Button) findViewById(R.id.button_vibrate);
         vibrateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 vibrate();
+            }
+        });
+    }
+
+    public void initOrientationButton(){
+        orientationButton = (Button) findViewById(R.id.button_magnetic);
+        orientationButton.setText("Give Orientation");
+        orientationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String text = getMagneticInfos();
+                mTextView.setText(text);
             }
         });
     }
@@ -86,5 +103,18 @@ public class MainActivity extends WearableActivity {
         final int indexInPatternToRepeat = -1;
         vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
         System.out.println("vibrating");
+    }
+
+    public String getMagneticInfos(){
+        String s = "";
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        if (sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null){
+            // Success! There's a magnetometer.
+            s = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD).getName();
+        } else {
+            // Failure! No magnetometer.
+            s = "Sorry but there is no magnetometer on this device";
+        }
+        return s;
     }
 }
