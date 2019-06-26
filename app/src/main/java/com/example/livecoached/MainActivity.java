@@ -3,6 +3,7 @@ package com.example.livecoached;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.Image;
 import android.os.Bundle;
@@ -16,7 +17,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class MainActivity extends WearableActivity {
+public class MainActivity extends WearableActivity implements SensorEventListener {
 
     private TextView mTextView;
     private SensorManager sensorManager;
@@ -56,6 +57,7 @@ public class MainActivity extends WearableActivity {
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
         geomagenticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        sensorManager.registerListener(this, geomagenticSensor, SensorManager.SENSOR_DELAY_FASTEST);
         System.out.println(geomagenticSensor);
     }
 
@@ -120,4 +122,28 @@ public class MainActivity extends WearableActivity {
         }
         return s;
     }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(this, geomagenticSensor, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(this);
+    }
+
+
 }
