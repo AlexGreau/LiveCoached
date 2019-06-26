@@ -24,6 +24,8 @@ public class MainActivity extends WearableActivity {
     private ImageButton sendButton;
     private Button orientationButton;
 
+    private Sensor geomagenticSensor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,7 +33,7 @@ public class MainActivity extends WearableActivity {
         setAmbientEnabled();
     }
 
-    public void init(){
+    public void init() {
         setContentView(R.layout.activity_main);
         initSensors();
         initTestText();
@@ -53,10 +55,11 @@ public class MainActivity extends WearableActivity {
         System.out.println("printing sensors");
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
-        System.out.println(sensors);
+        geomagenticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        System.out.println(geomagenticSensor);
     }
 
-    public void initSendingButton(){
+    public void initSendingButton() {
         sendButton = (ImageButton) findViewById(R.id.button_send);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,7 +69,7 @@ public class MainActivity extends WearableActivity {
         });
     }
 
-    public void initVibrateButton(){
+    public void initVibrateButton() {
         vibrateButton = (Button) findViewById(R.id.button_vibrate);
         vibrateButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,7 +79,7 @@ public class MainActivity extends WearableActivity {
         });
     }
 
-    public void initOrientationButton(){
+    public void initOrientationButton() {
         orientationButton = (Button) findViewById(R.id.button_magnetic);
         orientationButton.setText("Give Orientation");
         orientationButton.setOnClickListener(new View.OnClickListener() {
@@ -88,15 +91,15 @@ public class MainActivity extends WearableActivity {
         });
     }
 
-    public void initConnection(){
+    public void initConnection() {
         System.out.println("initiating connection");
     }
 
-    public void sendSensors(){
+    public void sendSensors() {
         System.out.println("sending sensors");
     }
 
-    public void vibrate(){
+    public void vibrate() {
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         long[] vibrationPattern = {0, 500, 50, 300};
         //-1 - don't repeat
@@ -105,12 +108,12 @@ public class MainActivity extends WearableActivity {
         System.out.println("vibrating");
     }
 
-    public String getMagneticInfos(){
-        String s = "";
+    public String getMagneticInfos() {
+        String s = "heya";
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null){
+        if (geomagenticSensor != null) {
             // Success! There's a magnetometer.
-            s = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD).getName();
+            s = geomagenticSensor.getName();
         } else {
             // Failure! No magnetometer.
             s = "Sorry but there is no magnetometer on this device";
