@@ -7,8 +7,7 @@
     android:background="@color/dark_grey"
     android:padding="@dimen/box_inset_layout_padding"
     tools:context=".MainActivity"
-    tools:deviceIds="wear"
-    >
+    tools:deviceIds="wear">
 
     <RelativeLayout
         android:layout_width="match_parent"
