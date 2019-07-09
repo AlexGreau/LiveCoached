@@ -1,18 +1,39 @@
 package com.example.livecoached;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -31,10 +52,21 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private Sensor orientationSensor;
     private boolean print;
     float Z, X, Y;
-    float latitude, longitude;
+
+    // Fused Location
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private int locationRequestCode = 1000;
+    private double wayLatitude = 0.0, wayLongitude = 0.0;
+
+    // Location updates request
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
 
     private final int PORT = 8080;
     private final String SERVER_IP = "192.168.43.239";
+    private final static int REQUEST_CHECK_SETTINGS = 6;
+
+    private final String TAG = MainActivity.class.getSimpleName();
 
 
     @Override
@@ -44,6 +76,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         setAmbientEnabled();
     }
 
+    // ~~~~~~~~~~~~~~~~~~~~~~ init functions ~~~~~~~~~~~~~~~~~~~~~~
     public void init() {
         setContentView(R.layout.activity_main);
         initSensors();
@@ -51,12 +84,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         initButtons();
         initConnection();
         print = true;
+        initLocation();
     }
 
     private void initButtons() {
         initVibrateButton();
         initSendingButton();
-        initMagneticButton();
+        initOrientationButton();
     }
 
     private void initTestText() {
@@ -92,7 +126,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         });
     }
 
-    public void initMagneticButton() {
+    public void initOrientationButton() {
         orientationButton = (Button) findViewById(R.id.button_magnetic);
         orientationButton.setText("Give Orientation");
         orientationButton.setOnClickListener(new View.OnClickListener() {
@@ -111,6 +145,112 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         System.out.println("initiating connection");
     }
 
+    public void initLocation() {
+        this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        checkLocationPermission();
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+        SettingsClient client = LocationServices.getSettingsClient(this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+        task.addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
+            @Override
+            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                System.out.println("task successful");
+                locationRequest = LocationRequest.create();
+                locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                locationRequest.setInterval(2 * 1000); // millis
+            }
+        });
+
+        task.addOnFailureListener(this, new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                if (e instanceof ResolvableApiException) {
+                    // Location settings are not satisfied, but this can be fixed
+                    // by showing the user a dialog.
+                    try {
+                        // Show the dialog by calling startResolutionForResult(),
+                        // and check the result in onActivityResult().
+                        ResolvableApiException resolvable = (ResolvableApiException) e;
+                        resolvable.startResolutionForResult(MainActivity.this,
+                                REQUEST_CHECK_SETTINGS);
+                    } catch (IntentSender.SendIntentException sendEx) {
+                        // Ignore the error.
+                    }
+                }
+            }
+        });
+
+
+        // callback
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
+                        wayLatitude = location.getLatitude();
+                        wayLongitude = location.getLongitude();
+                        mTextView.setText(String.format("%s -- %s", wayLatitude, wayLongitude));
+                        System.out.println("new location : " + wayLatitude + ", " + wayLongitude);
+                    }
+                }
+            }
+        };
+
+        // Last location
+        fusedLocationProviderClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        System.out.println("got last location");
+                        if (location != null) {
+                            // Logic to handle location object
+                            mTextView.setText(location.getLatitude() + ", " + location.getLongitude());
+                            System.out.println(location.toString());
+                        }
+                    }
+                });
+
+
+        // test log
+        Log.d(TAG, "finished setting location");
+
+        if (fusedLocationProviderClient != null) {
+            System.out.println("fused not null");
+            // removing location continuous updates else will get multiple locations updates
+            // fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+        }
+    }
+
+    // ~~~~~~~~~~~~~~~~~~~~~~ permissions functions ~~~~~~~~~~~~~~~~~~~~~~
+    public void checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            // request permission
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    locationRequestCode);
+        } else {
+            // permission granted
+            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if (location != null) {
+                        wayLatitude = location.getLatitude();
+                        wayLongitude = location.getLongitude();
+                        mTextView.setText(String.format("%s -- %s", wayLatitude, wayLongitude));
+                    }
+                }
+            });
+        }
+    }
+
+    ;
+
+    // ~~~~~~~~~~~~~~~~~~~~~~ other functions ~~~~~~~~~~~~~~~~~~~~~~
     public void sendSensors() {
         System.out.println("sending sensors");
     }
@@ -138,16 +278,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         return s;
     }
 
-    public void getPosition() {
-    }
-
     @Override
     public void onSensorChanged(SensorEvent event) {
         Z = event.values[0];
         X = event.values[1];
         Y = event.values[2];
         if (print) {
-            mTextView.setText("X : " + X + ", Y : " + Y + ", Z : " + Z);
+            mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
+            // mTextView.setText("X : " + X + ", Y : " + Y + ", Z : " + Z);
             print = false;
         }
     }
@@ -160,7 +298,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        System.out.println("Geomagnetic sensors accuracy changed");
+        System.out.println("Sensors' accuracy changed");
     }
 
     @Override
@@ -174,7 +312,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         super.onPause();
         sensorManager.unregisterListener(this);
     }
-
 
     public class MyClientTask extends AsyncTask<Void, Void, Void> {
 
