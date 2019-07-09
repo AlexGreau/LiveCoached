@@ -238,7 +238,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
                 @Override
                 public void onSuccess(Location location) {
+                    System.out.println("Permission granted !");
                     if (location != null) {
+                        System.out.println("location is null");
                         wayLatitude = location.getLatitude();
                         wayLongitude = location.getLongitude();
                         mTextView.setText(String.format("%s -- %s", wayLatitude, wayLongitude));
