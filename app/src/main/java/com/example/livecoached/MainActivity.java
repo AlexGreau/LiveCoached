@@ -137,12 +137,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 String text = getMagneticInfos();
                 mTextView.setText(text);
                 */
+                System.out.println("printing location : " + wayLatitude + ", " + wayLongitude);
             }
         });
     }
 
     public void initConnection() {
-        System.out.println("initiating connection");
+        // System.out.println("initiating connection");
     }
 
     public void initLocation() {
@@ -192,10 +193,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 }
                 for (Location location : locationResult.getLocations()) {
                     if (location != null) {
-                        wayLatitude = location.getLatitude();
-                        wayLongitude = location.getLongitude();
-                        mTextView.setText(String.format("%s -- %s", wayLatitude, wayLongitude));
-                        System.out.println("new location : " + wayLatitude + ", " + wayLongitude);
+                        actualizeLocationVariables(location);
                     }
                 }
             }
@@ -209,19 +207,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                         // Got last known location. In some rare situations this can be null.
                         System.out.println("got last location");
                         if (location != null) {
+                            System.out.println("last location is not null");
                             // Logic to handle location object
-                            mTextView.setText(location.getLatitude() + ", " + location.getLongitude());
-                            System.out.println(location.toString());
+                            actualizeLocationVariables(location);
                         }
                     }
                 });
 
-
-        // test log
-        Log.d(TAG, "finished setting location");
-
         if (fusedLocationProviderClient != null) {
-            System.out.println("fused not null");
             // removing location continuous updates else will get multiple locations updates
             // fusedLocationProviderClient.removeLocationUpdates(locationCallback);
         }
@@ -240,17 +233,16 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 public void onSuccess(Location location) {
                     System.out.println("Permission granted !");
                     if (location != null) {
-                        System.out.println("location is null");
-                        wayLatitude = location.getLatitude();
-                        wayLongitude = location.getLongitude();
-                        mTextView.setText(String.format("%s -- %s", wayLatitude, wayLongitude));
+                        System.out.println("initializing location variables");
+                        actualizeLocationVariables(location);
+                    } else {
+                        System.out.println("first location is null" );
                     }
                 }
             });
         }
     }
 
-    ;
 
     // ~~~~~~~~~~~~~~~~~~~~~~ other functions ~~~~~~~~~~~~~~~~~~~~~~
     public void sendSensors() {
@@ -278,6 +270,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             s = "Sorry but there is no magnetometer on this device";
         }
         return s;
+    }
+
+    public void actualizeLocationVariables (Location loc){
+        wayLatitude = loc.getLatitude();
+        wayLongitude = loc.getLongitude();
+        mTextView.setText(String.format("%s -- %s", wayLatitude, wayLongitude));
+        System.out.println("new location values : " + wayLatitude + ", " + wayLongitude);
     }
 
     @Override
