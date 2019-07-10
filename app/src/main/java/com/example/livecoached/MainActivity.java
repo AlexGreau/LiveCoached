@@ -150,7 +150,20 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void initLocation() {
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         checkLocationPermission();
+        initLocationSettings();
+        initLocationRequest();
+        initLocationCallback();
+        retrieveLastLocation();
+        startLocationUpdates();
+    }
 
+    public void initLocationRequest() {
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(2 * 1000); // millis
+    }
+
+    public void initLocationSettings(){
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(locationRequest);
         SettingsClient client = LocationServices.getSettingsClient(this);
@@ -180,10 +193,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 }
             }
         });
+    }
 
-        initLocationRequest();
-
-        // callback
+    public void initLocationCallback(){
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -197,8 +209,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 }
             }
         };
+    }
 
-        // Last location
+    public void retrieveLastLocation(){
         fusedLocationProviderClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
@@ -212,19 +225,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                         }
                     }
                 });
-
-        startLocationUpdates();
-
         if (fusedLocationProviderClient != null) {
             // removing location continuous updates else will get multiple locations updates
-             fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+            fusedLocationProviderClient.removeLocationUpdates(locationCallback);
         }
-    }
-
-    public void initLocationRequest() {
-        locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(2 * 1000); // millis
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~ permissions functions ~~~~~~~~~~~~~~~~~~~~~~
