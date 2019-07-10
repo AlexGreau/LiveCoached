@@ -72,6 +72,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        checkHardware();
         init();
         setAmbientEnabled();
     }
@@ -143,7 +144,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void initConnection() {
-        // System.out.println("initiating connection");
+         System.out.println("initiating connection");
     }
 
     public void initLocation() {
@@ -158,9 +159,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             @Override
             public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
                 System.out.println("task successful");
-                locationRequest = LocationRequest.create();
-                locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-                locationRequest.setInterval(2 * 1000); // millis
             }
         });
 
@@ -183,6 +181,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             }
         });
 
+        initLocationRequest();
 
         // callback
         locationCallback = new LocationCallback() {
@@ -214,15 +213,23 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     }
                 });
 
+        startLocationUpdates();
+
         if (fusedLocationProviderClient != null) {
             // removing location continuous updates else will get multiple locations updates
-            // fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+             fusedLocationProviderClient.removeLocationUpdates(locationCallback);
         }
+    }
+
+    public void initLocationRequest() {
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(2 * 1000); // millis
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~ permissions functions ~~~~~~~~~~~~~~~~~~~~~~
     public void checkLocationPermission() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // request permission
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                     locationRequestCode);
@@ -236,10 +243,17 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                         System.out.println("initializing location variables");
                         actualizeLocationVariables(location);
                     } else {
-                        System.out.println("first location is null" );
+                        System.out.println("first location is null");
                     }
                 }
             });
+        }
+    }
+
+    public void checkHardware() {
+        boolean hasGPS = getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
+        if (!hasGPS) {
+            System.out.println("This hardware does not have GPS");
         }
     }
 
@@ -272,11 +286,19 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         return s;
     }
 
-    public void actualizeLocationVariables (Location loc){
+    public void actualizeLocationVariables(Location loc) {
         wayLatitude = loc.getLatitude();
         wayLongitude = loc.getLongitude();
         mTextView.setText(String.format("%s -- %s", wayLatitude, wayLongitude));
         System.out.println("new location values : " + wayLatitude + ", " + wayLongitude);
+    }
+
+    public void startLocationUpdates() {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            System.out.println("Permission not granted");
+            return;
+        }
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 
     @Override
@@ -306,6 +328,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        startLocationUpdates();
     }
 
     @Override
