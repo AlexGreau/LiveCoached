@@ -20,39 +20,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/hello_world"
-
             />
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/text"
-            android:id="@+id/layout_buttons">
-
-            <Button
-                android:id="@+id/button_vibrate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="vibrate"
-                />
-
-            <ImageButton
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:id="@+id/button_send"
-                android:src="@drawable/ic_send"
-                android:layout_toRightOf="@+id/button_vibrate"
-                android:layout_alignTop="@+id/button_vibrate"
-                />
-        </RelativeLayout>
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/button_magnetic"
-            android:layout_below="@id/layout_buttons"
-            />
+            android:id="@+id/startButton"
+            android:text="Start Exp"
+            android:layout_below="@+id/text"/>
 
     </RelativeLayout>
 </androidx.wear.widget.BoxInsetLayout>

@@ -45,9 +45,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private TextView mTextView;
     private SensorManager sensorManager;
-    private Button vibrateButton;
-    private ImageButton sendButton;
-    private Button orientationButton;
+
+    private Button startButton;
 
     private Sensor orientationSensor;
     private boolean print;
@@ -89,9 +88,17 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     private void initButtons() {
-        initVibrateButton();
-        initSendingButton();
-        initOrientationButton();
+        initStartButton();
+    }
+
+    private void initStartButton() {
+        startButton = findViewById(R.id.startButton);
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startExp();
+            }
+        });
     }
 
     private void initTestText() {
@@ -106,45 +113,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
-    public void initSendingButton() {
-        sendButton = (ImageButton) findViewById(R.id.button_send);
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startCommTest();
-                sendSensors();
-            }
-        });
-    }
-
-    public void initVibrateButton() {
-        vibrateButton = (Button) findViewById(R.id.button_vibrate);
-        vibrateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                vibrate();
-            }
-        });
-    }
-
-    public void initOrientationButton() {
-        orientationButton = (Button) findViewById(R.id.button_magnetic);
-        orientationButton.setText("Give Orientation");
-        orientationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                print = true;
-                /*
-                String text = getMagneticInfos();
-                mTextView.setText(text);
-                */
-                System.out.println("printing location : " + wayLatitude + ", " + wayLongitude);
-            }
-        });
-    }
-
     public void initConnection() {
-         System.out.println("initiating connection");
+        System.out.println("initiating connection");
     }
 
     public void initLocation() {
@@ -163,7 +133,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         locationRequest.setInterval(2 * 1000); // millis
     }
 
-    public void initLocationSettings(){
+    public void initLocationSettings() {
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(locationRequest);
         SettingsClient client = LocationServices.getSettingsClient(this);
@@ -195,7 +165,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         });
     }
 
-    public void initLocationCallback(){
+    public void initLocationCallback() {
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -211,7 +181,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         };
     }
 
-    public void retrieveLastLocation(){
+    public void retrieveLastLocation() {
         fusedLocationProviderClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
@@ -231,7 +201,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     }
 
-    // ~~~~~~~~~~~~~~~~~~~~~~ permissions functions ~~~~~~~~~~~~~~~~~~~~~~
+    // ~~~~~~~~~~~~~~~~~~~~~~ checking functions ~~~~~~~~~~~~~~~~~~~~~~
     public void checkLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // request permission
@@ -261,7 +231,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     }
 
-
     // ~~~~~~~~~~~~~~~~~~~~~~ other functions ~~~~~~~~~~~~~~~~~~~~~~
     public void sendSensors() {
         System.out.println("sending sensors");
@@ -274,20 +243,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         final int indexInPatternToRepeat = -1;
         vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
         System.out.println("vibrating");
-    }
-
-    public String getMagneticInfos() {
-        String s = "heya";
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        if (orientationSensor != null) {
-            // Success! There's a magnetometer.
-            s = orientationSensor.getName();
-            print = true;
-        } else {
-            // Failure! No magnetometer.
-            s = "Sorry but there is no magnetometer on this device";
-        }
-        return s;
     }
 
     public void actualizeLocationVariables(Location loc) {
@@ -305,22 +260,22 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        Z = event.values[0];
-        X = event.values[1];
-        Y = event.values[2];
-        if (print) {
-            mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
-            // mTextView.setText("X : " + X + ", Y : " + Y + ", Z : " + Z);
-            print = false;
-        }
+    private void startExp() {
+        sendActualPosition();
+        // receive the formation from tablet
     }
 
-    public void startCommTest() {
+    private void sendActualPosition() {
+        String msg = wayLatitude + "-" + wayLongitude;
         MyClientTask myClientTask = new MyClientTask(SERVER_IP,
-                PORT, "X :" + Z + "Y : " + X + ", Z : " + Y);
+                PORT, msg);
+        System.out.println("Sent : " + msg);
         myClientTask.execute();
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
     }
 
     @Override
