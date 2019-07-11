@@ -29,5 +29,12 @@
             android:text="Start Exp"
             android:layout_below="@+id/text"/>
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/stopButton"
+            android:text="Stop Exp"
+            android:layout_below="@+id/startButton"/>
+
     </RelativeLayout>
 </androidx.wear.widget.BoxInsetLayout>

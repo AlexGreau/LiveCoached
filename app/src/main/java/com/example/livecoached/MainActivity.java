@@ -40,6 +40,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.SQLOutput;
 
 public class MainActivity extends WearableActivity implements SensorEventListener {
 
@@ -47,10 +48,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private SensorManager sensorManager;
 
     private Button startButton;
+    private Button stopButton;
 
     private Sensor orientationSensor;
-    private boolean print;
-    float Z, X, Y;
 
     // Fused Location
     private FusedLocationProviderClient fusedLocationProviderClient;
@@ -83,12 +83,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         initTestText();
         initButtons();
         initConnection();
-        print = true;
         initLocation();
     }
 
     private void initButtons() {
         initStartButton();
+        initStopButton();
     }
 
     private void initStartButton() {
@@ -97,6 +97,16 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             @Override
             public void onClick(View v) {
                 startExp();
+            }
+        });
+    }
+
+    private void initStopButton() {
+        stopButton = findViewById(R.id.stopButton);
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopExp();
             }
         });
     }
@@ -124,7 +134,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         initLocationRequest();
         initLocationCallback();
         retrieveLastLocation();
-        startLocationUpdates();
     }
 
     public void initLocationRequest() {
@@ -182,6 +191,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void retrieveLastLocation() {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            System.out.println("Permission not granted");
+            return;
+        }
         fusedLocationProviderClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
@@ -260,9 +273,19 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 
+    public void stopLocationUpdates() {
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+    }
+
     private void startExp() {
         sendActualPosition();
+        startLocationUpdates();
         // receive the formation from tablet
+    }
+
+    private void stopExp() {
+        System.out.println("stopping the experiment");
+        stopLocationUpdates();
     }
 
     private void sendActualPosition() {
@@ -271,6 +294,15 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 PORT, msg);
         System.out.println("Sent : " + msg);
         myClientTask.execute();
+    }
+
+    private void decodeResponse(String rep) {
+        // after receiving the message from tablet, must know the orders that it contained
+        if (rep == null || rep.isEmpty()) {
+            System.out.println("Response not acceptable : " + rep);
+        } else {
+
+        }
     }
 
     @Override
@@ -287,13 +319,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        startLocationUpdates();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         sensorManager.unregisterListener(this);
+        stopLocationUpdates();
     }
 
     public class MyClientTask extends AsyncTask<Void, Void, Void> {
@@ -370,6 +402,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         protected void onPostExecute(Void result) {
             System.out.println(response);
             super.onPostExecute(result);
+            decodeResponse(response);
         }
     }
 }
