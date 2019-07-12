@@ -1,6 +1,9 @@
 package com.example.livecoached.Service;
 
 import android.os.AsyncTask;
+import android.view.animation.CycleInterpolator;
+
+import com.google.android.gms.common.api.Api;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -15,9 +18,18 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
     String response = "";
     String msgToServer;
 
+    private final int PORT = 8080;
+    private final String SERVER_IP = "192.168.43.239";
+
     public ClientTask(String addr, int port, String msgTo) {
         dstAddress = addr;
         dstPort = port;
+        msgToServer = msgTo;
+    }
+
+    public ClientTask(String msgTo) {
+        dstAddress = SERVER_IP;
+        dstPort = PORT;
         msgToServer = msgTo;
     }
 
@@ -87,8 +99,8 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
         if (rep == null || rep.isEmpty()) {
             System.out.println("Response not acceptable : " + rep);
         } else {
-          //  orders = rep;
-          //   System.out.println("Here are the orders received :" + orders);
+            //  orders = rep;
+            //   System.out.println("Here are the orders received :" + orders);
         }
     }
 }

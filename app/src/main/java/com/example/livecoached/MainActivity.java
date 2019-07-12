@@ -43,8 +43,6 @@ import java.net.UnknownHostException;
 public class MainActivity extends WearableActivity implements SensorEventListener {
 
     private final String TAG = MainActivity.class.getSimpleName();
-    private final int PORT = 8080;
-    private final String SERVER_IP = "192.168.43.239";
     private final static int REQUEST_CHECK_SETTINGS = 6;
 
     // communication
@@ -305,8 +303,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void sendActualPosition() {
         String msg = wayLatitude + "-" + wayLongitude;
-        myClientTask = new ClientTask(SERVER_IP,
-                PORT, msg);
+        myClientTask = new ClientTask(msg);
         System.out.println("Sent : " + msg);
         myClientTask.execute();
     }
