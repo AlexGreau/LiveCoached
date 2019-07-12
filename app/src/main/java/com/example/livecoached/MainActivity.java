@@ -44,13 +44,13 @@ import java.sql.SQLOutput;
 
 public class MainActivity extends WearableActivity implements SensorEventListener {
 
-    private TextView mTextView;
-    private SensorManager sensorManager;
+    private final String TAG = MainActivity.class.getSimpleName();
+    private final int PORT = 8080;
+    private final String SERVER_IP = "192.168.43.239";
+    private final static int REQUEST_CHECK_SETTINGS = 6;
 
-    private Button startButton;
-    private Button stopButton;
-
-    private Sensor orientationSensor;
+    // communication
+    private MyClientTask myClientTask;
 
     // Fused Location
     private FusedLocationProviderClient fusedLocationProviderClient;
@@ -60,13 +60,17 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // Location updates request
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
+    private boolean updated;
 
-    private final int PORT = 8080;
-    private final String SERVER_IP = "192.168.43.239";
-    private final static int REQUEST_CHECK_SETTINGS = 6;
+    private TextView mTextView;
+    private SensorManager sensorManager;
 
-    private final String TAG = MainActivity.class.getSimpleName();
+    private Button startButton;
+    private Button stopButton;
 
+    private Sensor orientationSensor;
+
+    private String orders;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,6 +138,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         initLocationRequest();
         initLocationCallback();
         retrieveLastLocation();
+        updated = false;
     }
 
     public void initLocationRequest() {
@@ -277,32 +282,36 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
-    private void startExp() {
+    private void playerIsReady(){
         sendActualPosition();
-        startLocationUpdates();
-        // receive the formation from tablet
+    }
+
+    private void startExp() {
+        if (!updated) {
+            System.out.println("Starting the experiment");
+            startLocationUpdates();
+            updated = true;
+        } else {
+            System.out.println("Already updated");
+        }
     }
 
     private void stopExp() {
-        System.out.println("stopping the experiment");
-        stopLocationUpdates();
+        if (updated){
+            System.out.println("stopping the experiment");
+            stopLocationUpdates();
+            updated = false;
+        } else {
+            System.out.println("Not updated already");
+        }
     }
 
     private void sendActualPosition() {
         String msg = wayLatitude + "-" + wayLongitude;
-        MyClientTask myClientTask = new MyClientTask(SERVER_IP,
+        myClientTask = new MyClientTask(SERVER_IP,
                 PORT, msg);
         System.out.println("Sent : " + msg);
         myClientTask.execute();
-    }
-
-    private void decodeResponse(String rep) {
-        // after receiving the message from tablet, must know the orders that it contained
-        if (rep == null || rep.isEmpty()) {
-            System.out.println("Response not acceptable : " + rep);
-        } else {
-
-        }
     }
 
     @Override
@@ -360,11 +369,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 response = dataInputStream.readUTF();
 
             } catch (UnknownHostException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 response = "UnknownHostException: " + e.toString();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 response = "IOException: " + e.toString();
             } finally {
@@ -372,7 +379,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     try {
                         socket.close();
                     } catch (IOException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }
@@ -403,6 +409,16 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             System.out.println(response);
             super.onPostExecute(result);
             decodeResponse(response);
+        }
+
+        private void decodeResponse(String rep) {
+            // after receiving the message from tablet, must know the orders that it contained
+            if (rep == null || rep.isEmpty()) {
+                System.out.println("Response not acceptable : " + rep);
+            } else {
+                orders = rep;
+                System.out.println("Here are the orders received :" + orders);
+            }
         }
     }
 }
