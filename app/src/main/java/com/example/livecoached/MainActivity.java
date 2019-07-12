@@ -13,10 +13,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -40,7 +38,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.sql.SQLOutput;
 
 public class MainActivity extends WearableActivity implements SensorEventListener {
 
@@ -60,7 +57,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // Location updates request
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
-    private boolean updated;
+    private boolean locationUpdateRequested;
 
     private TextView mTextView;
     private SensorManager sensorManager;
@@ -138,7 +135,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         initLocationRequest();
         initLocationCallback();
         retrieveLastLocation();
-        updated = false;
+        locationUpdateRequested = false;
     }
 
     public void initLocationRequest() {
@@ -189,6 +186,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 for (Location location : locationResult.getLocations()) {
                     if (location != null) {
                         actualizeLocationVariables(location);
+                        sendActualPosition();
                     }
                 }
             }
@@ -250,10 +248,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~ other functions ~~~~~~~~~~~~~~~~~~~~~~
-    public void sendSensors() {
-        System.out.println("sending sensors");
-    }
-
     public void vibrate() {
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         long[] vibrationPattern = {0, 500, 50, 300};
@@ -282,27 +276,29 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
-    private void playerIsReady(){
+    private void playerIsReady() {
         sendActualPosition();
     }
 
     private void startExp() {
-        if (!updated) {
+        if (!locationUpdateRequested) {
             System.out.println("Starting the experiment");
             startLocationUpdates();
-            updated = true;
+            locationUpdateRequested = true;
+            vibrate();
         } else {
-            System.out.println("Already updated");
+            System.out.println("Already locationUpdateRequested");
         }
     }
 
     private void stopExp() {
-        if (updated){
+        if (locationUpdateRequested) {
             System.out.println("stopping the experiment");
             stopLocationUpdates();
-            updated = false;
+            locationUpdateRequested = false;
+            vibrate();
         } else {
-            System.out.println("Not updated already");
+            System.out.println("No locationUpdateRequested already");
         }
     }
 
