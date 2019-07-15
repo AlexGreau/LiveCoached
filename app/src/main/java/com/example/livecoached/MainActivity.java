@@ -269,6 +269,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             stopLocationUpdates();
             locationUpdateRequested = false;
             sendActualPosition("Stop");
+            // TODO : transit to end screen, then to starting activity
             vibrate();
         } else {
             System.out.println("No locationUpdateRequested already");

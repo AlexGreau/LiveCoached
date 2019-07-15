@@ -58,6 +58,7 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
         } catch (IOException e) {
             e.printStackTrace();
             response = "IOException: " + e.toString();
+            // TODO : toast with connexion trouble explication on screen
         } finally {
             if (socket != null) {
                 try {
