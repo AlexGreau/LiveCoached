@@ -60,8 +60,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private Sensor orientationSensor;
 
-    private String orders;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +74,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         initSensors();
         initTestText();
         initButtons();
-        initConnection();
         initLocation();
     }
 
@@ -117,13 +114,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
-    public void initConnection() {
-        System.out.println("initiating connection");
-    }
-
     public void initLocation() {
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        checkLocationPermission();
+       // checkLocationPermission();
         initLocationSettings();
         initLocationRequest();
         initLocationCallback();
@@ -173,7 +166,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 for (Location location : locationResult.getLocations()) {
                     if (location != null) {
                         actualizeLocationVariables(location);
-                        sendActualPosition();
+                        sendActualPosition("Running");
                     }
                 }
             }
@@ -259,10 +252,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
-    private void playerIsReady() {
-        sendActualPosition();
-    }
-
     private void startExp() {
         if (!locationUpdateRequested) {
             System.out.println("Starting the experiment");
@@ -279,14 +268,15 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             System.out.println("stopping the experiment");
             stopLocationUpdates();
             locationUpdateRequested = false;
+            sendActualPosition("Stop");
             vibrate();
         } else {
             System.out.println("No locationUpdateRequested already");
         }
     }
 
-    private void sendActualPosition() {
-        String msg = wayLatitude + "-" + wayLongitude;
+    private void sendActualPosition(String state) {
+        String msg = state + ":" + wayLatitude + "-" + wayLongitude;
         myClientTask = new ClientTask(msg,this);
         myClientTask.execute();
     }

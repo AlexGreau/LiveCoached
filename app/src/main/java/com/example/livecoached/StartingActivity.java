@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.core.app.ActivityCompat;
+
 import com.example.livecoached.Service.ClientTask;
 import com.example.livecoached.Service.Decoder;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -76,6 +78,7 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     private void initLocation(){
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        checkLocationPermission();
     }
 
     private void sendToServer() {
@@ -121,5 +124,26 @@ public class StartingActivity extends WearableActivity implements Decoder {
     private void actualizeLocationVariables( Location loc){
         wayLatitude = loc.getLatitude();
         wayLongitude = loc.getLongitude();
+    }
+
+    public void checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // request permission
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    locationRequestCode);
+        } else {
+            // permission granted
+            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    System.out.println("Permission granted !");
+                    if (location != null) {
+                        actualizeLocationVariables(location);
+                    } else {
+                        System.out.println("last location is null");
+                    }
+                }
+            });
+        }
     }
 }
