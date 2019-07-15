@@ -1,6 +1,9 @@
 package com.example.livecoached;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
@@ -9,6 +12,9 @@ import android.widget.TextView;
 
 import com.example.livecoached.Service.ClientTask;
 import com.example.livecoached.Service.Decoder;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 public class StartingActivity extends WearableActivity implements Decoder {
 
@@ -19,6 +25,11 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     // Client
     private ClientTask client;
+
+    // Location
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private int locationRequestCode = 1000;
+    private double wayLatitude = 0.0, wayLongitude = 0.0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +42,7 @@ public class StartingActivity extends WearableActivity implements Decoder {
         initText();
         initFirstOptionButton();
         initSecondOptionButton();
+        initLocation();
     }
 
     private void initText() {
@@ -44,6 +56,7 @@ public class StartingActivity extends WearableActivity implements Decoder {
         firstOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                retrieveLastLocation();
                 sendToServer();
             }
         });
@@ -55,14 +68,19 @@ public class StartingActivity extends WearableActivity implements Decoder {
         secondOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                retrieveLastLocation();
                 sendToServer();
             }
         });
     }
 
+    private void initLocation(){
+        this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+    }
+
     private void sendToServer() {
         System.out.println("sending Ready to server");
-        client = new ClientTask("Ready", this);
+        client = new ClientTask("Ready:" + wayLatitude + "-" + wayLongitude, this);
         client.execute();
     }
 
@@ -80,5 +98,28 @@ public class StartingActivity extends WearableActivity implements Decoder {
         } else {
             System.out.println("invalid response : " + rep);
         }
+    }
+
+    public void retrieveLastLocation() {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            System.out.println("Permission not granted");
+            return;
+        }
+        fusedLocationProviderClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        System.out.println("got last location");
+                        if (location != null) {
+                            actualizeLocationVariables(location);
+                        }
+                    }
+                });
+    }
+
+    private void actualizeLocationVariables( Location loc){
+        wayLatitude = loc.getLatitude();
+        wayLongitude = loc.getLongitude();
     }
 }
