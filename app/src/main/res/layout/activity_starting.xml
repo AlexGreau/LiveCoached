@@ -9,36 +9,36 @@
     tools:context=".MainActivity"
     tools:deviceIds="wear">
 
-    <RelativeLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="@dimen/inner_frame_layout_padding"
         app:boxedEdges="all">
 
         <TextView
+            android:id="@+id/welcomeText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/welcomeText"
+            android:padding="15dp"
+            android:gravity="center" />
+
+        <ImageButton
+            android:background="@null"
+            android:id="@+id/firstOptionButton"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/ok"
+            android:layout_gravity="bottom|left"
             />
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_below="@+id/welcomeText">
+        <ImageButton
+            android:background="@null"
+            android:id="@+id/secondOptionButton"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/ok"
+            android:layout_gravity="bottom|right"
+            />
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/firstOptionButton"/>
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/secondOptionButton"
-                android:layout_toRightOf="@+id/firstOptionButton"/>
-
-        </RelativeLayout>
-
-    </RelativeLayout>
+    </FrameLayout>
 </androidx.wear.widget.BoxInsetLayout>

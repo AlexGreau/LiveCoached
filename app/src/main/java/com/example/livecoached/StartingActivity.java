@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.core.app.ActivityCompat;
@@ -22,8 +23,8 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     // UI components
     private TextView text;
-    private Button firstOption;
-    private Button secondOption;
+    private ImageButton firstOption;
+    private ImageButton secondOption;
 
     // Client
     private ClientTask client;
@@ -54,7 +55,6 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     private void initFirstOptionButton() {
         firstOption = findViewById(R.id.firstOptionButton);
-        firstOption.setText(R.string.first_option_text);
         firstOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,7 +66,6 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     private void initSecondOptionButton() {
         secondOption = findViewById(R.id.secondOptionButton);
-        secondOption.setText(R.string.second_option_text);
         secondOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
