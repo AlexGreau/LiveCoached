@@ -31,7 +31,6 @@ public class StartingActivity extends WearableActivity implements Decoder {
         initText();
         initFirstOptionButton();
         initSecondOptionButton();
-
     }
 
     private void initText() {
@@ -46,42 +45,40 @@ public class StartingActivity extends WearableActivity implements Decoder {
             @Override
             public void onClick(View v) {
                 sendToServer();
-                startMainActivity();
             }
         });
     }
 
-    private void initSecondOptionButton(){
+    private void initSecondOptionButton() {
         secondOption = findViewById(R.id.secondOptionButton);
         secondOption.setText(R.string.second_option_text);
         secondOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 sendToServer();
-                startMainActivity();
-                finish();
             }
         });
     }
 
-    private void sendToServer(){
+    private void sendToServer() {
         System.out.println("sending Ready to server");
-        client = new ClientTask("Ready",this);
-        disableButtons();
+        client = new ClientTask("Ready", this);
+        client.execute();
     }
 
-    private void startMainActivity(){
+    private void startMainActivity() {
         Intent intent = new Intent(StartingActivity.this, MainActivity.class);
         startActivity(intent);
     }
 
-    private void disableButtons(){
-        firstOption.setClickable(false);
-        secondOption.setClickable(false);
-    }
-
     @Override
     public void decodeResponse(String rep) {
-        System.out.println("Starting Activity Decoder");
+        System.out.println("Starting Activity Decoder : " + rep);
+        if (rep.equals("Continue")) {
+            startMainActivity();
+            finish();
+        } else {
+            System.out.println("invalid response : " + rep);
+        }
     }
 }

@@ -142,12 +142,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 .addLocationRequest(locationRequest);
         SettingsClient client = LocationServices.getSettingsClient(this);
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-        task.addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
-            @Override
-            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                System.out.println("task successful");
-            }
-        });
 
         task.addOnFailureListener(this, new OnFailureListener() {
             @Override
@@ -196,10 +190,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     @Override
                     public void onSuccess(Location location) {
                         // Got last known location. In some rare situations this can be null.
-                        System.out.println("got last location");
                         if (location != null) {
-                            System.out.println("last location is not null");
-                            // Logic to handle location object
                             actualizeLocationVariables(location);
                         }
                     }
@@ -223,10 +214,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 public void onSuccess(Location location) {
                     System.out.println("Permission granted !");
                     if (location != null) {
-                        System.out.println("initializing location variables");
                         actualizeLocationVariables(location);
                     } else {
-                        System.out.println("first location is null");
+                        System.out.println("last location is null");
                     }
                 }
             });
@@ -298,13 +288,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void sendActualPosition() {
         String msg = wayLatitude + "-" + wayLongitude;
         myClientTask = new ClientTask(msg,this);
-        System.out.println("Sent : " + msg);
         myClientTask.execute();
     }
 
     @Override
     public void  decodeResponse(String rep) {
-        System.out.println("Main Activity Decoder");
+        System.out.println("Main Activity Decoder " + rep);
     }
 
     @Override
@@ -329,10 +318,4 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         sensorManager.unregisterListener(this);
         stopLocationUpdates();
     }
-
-    // get and set
-    public void setOrders(String s){
-        this.orders = s;
-    }
-
 }

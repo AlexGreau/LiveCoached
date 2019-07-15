@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class ClientTask extends AsyncTask<Void, Void, Void>{
+public class ClientTask extends AsyncTask<Void, Void, Void> {
 
     String dstAddress;
     int dstPort;
@@ -26,7 +26,7 @@ public class ClientTask extends AsyncTask<Void, Void, Void>{
         msgToServer = msgTo;
     }
 
-    public ClientTask(String msgTo, Decoder act){
+    public ClientTask(String msgTo, Decoder act) {
         dstAddress = SERVER_IP;
         dstPort = PORT;
         msgToServer = msgTo;
@@ -47,6 +47,7 @@ public class ClientTask extends AsyncTask<Void, Void, Void>{
 
             if (msgToServer != null) {
                 dataOutputStream.writeUTF(msgToServer);
+                System.out.println("sent : " + msgToServer);
             }
 
             response = dataInputStream.readUTF();
