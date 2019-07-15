@@ -1,9 +1,6 @@
 package com.example.livecoached.Service;
 
 import android.os.AsyncTask;
-import android.view.animation.CycleInterpolator;
-
-import com.google.android.gms.common.api.Api;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -11,12 +8,14 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class ClientTask extends AsyncTask<Void, Void, Void> {
+public class ClientTask extends AsyncTask<Void, Void, Void>{
 
     String dstAddress;
     int dstPort;
     String response = "";
     String msgToServer;
+
+    Decoder activity;
 
     private final int PORT = 8080;
     private final String SERVER_IP = "192.168.43.239";
@@ -27,10 +26,11 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
         msgToServer = msgTo;
     }
 
-    public ClientTask(String msgTo) {
+    public ClientTask(String msgTo, Decoder act){
         dstAddress = SERVER_IP;
         dstPort = PORT;
         msgToServer = msgTo;
+        this.activity = act;
     }
 
     @Override
@@ -89,18 +89,7 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected void onPostExecute(Void result) {
-        System.out.println(response);
         super.onPostExecute(result);
-        decodeResponse(response);
-    }
-
-    private void decodeResponse(String rep) {
-        // after receiving the message from tablet, must know the orders that it contained
-        if (rep == null || rep.isEmpty()) {
-            System.out.println("Response not acceptable : " + rep);
-        } else {
-            //  orders = rep;
-            //   System.out.println("Here are the orders received :" + orders);
-        }
+        activity.decodeResponse(response);
     }
 }

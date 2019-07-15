@@ -8,8 +8,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.livecoached.Service.ClientTask;
+import com.example.livecoached.Service.Decoder;
 
-public class StartingActivity extends WearableActivity {
+public class StartingActivity extends WearableActivity implements Decoder {
 
     // UI components
     private TextView text;
@@ -17,7 +18,7 @@ public class StartingActivity extends WearableActivity {
     private Button secondOption;
 
     // Client
-    private ClientTask clientTask;
+    private ClientTask client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,13 +59,15 @@ public class StartingActivity extends WearableActivity {
             public void onClick(View v) {
                 sendToServer();
                 startMainActivity();
+                finish();
             }
         });
     }
 
     private void sendToServer(){
-        System.out.println("sending to server");
-        clientTask = new ClientTask("Ready");
+        System.out.println("sending Ready to server");
+        client = new ClientTask("Ready",this);
+        disableButtons();
     }
 
     private void startMainActivity(){
@@ -72,4 +75,13 @@ public class StartingActivity extends WearableActivity {
         startActivity(intent);
     }
 
+    private void disableButtons(){
+        firstOption.setClickable(false);
+        secondOption.setClickable(false);
+    }
+
+    @Override
+    public void decodeResponse(String rep) {
+        System.out.println("Starting Activity Decoder");
+    }
 }

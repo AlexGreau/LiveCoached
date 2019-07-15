@@ -9,7 +9,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
@@ -21,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.example.livecoached.Service.ClientTask;
+import com.example.livecoached.Service.Decoder;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -34,13 +34,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.Socket;
-import java.net.UnknownHostException;
-
-public class MainActivity extends WearableActivity implements SensorEventListener {
+public class MainActivity extends WearableActivity implements SensorEventListener, Decoder {
 
     private final String TAG = MainActivity.class.getSimpleName();
     private final static int REQUEST_CHECK_SETTINGS = 6;
@@ -303,9 +297,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void sendActualPosition() {
         String msg = wayLatitude + "-" + wayLongitude;
-        myClientTask = new ClientTask(msg);
+        myClientTask = new ClientTask(msg,this);
         System.out.println("Sent : " + msg);
         myClientTask.execute();
+    }
+
+    @Override
+    public void  decodeResponse(String rep) {
+        System.out.println("Main Activity Decoder");
     }
 
     @Override
@@ -331,5 +330,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         stopLocationUpdates();
     }
 
+    // get and set
+    public void setOrders(String s){
+        this.orders = s;
+    }
 
 }
