@@ -1,6 +1,8 @@
 package com.example.livecoached.Service;
 
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.widget.Toast;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -55,10 +57,11 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
         } catch (UnknownHostException e) {
             e.printStackTrace();
             response = "UnknownHostException: " + e.toString();
+            activity.errorMessage("Sorry, could not connect, try again");
         } catch (IOException e) {
             e.printStackTrace();
             response = "IOException: " + e.toString();
-            // TODO : toast with connexion trouble explication on screen
+            activity.errorMessage("Sorry, could not connect, try again");
         } finally {
             if (socket != null) {
                 try {
@@ -72,7 +75,7 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
                 try {
                     dataOutputStream.close();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
+                    activity.errorMessage("Sorry, could not connect, try again");
                     e.printStackTrace();
                 }
             }
@@ -81,7 +84,7 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
                 try {
                     dataInputStream.close();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
+                    activity.errorMessage("Sorry, could not connect, try again");
                     e.printStackTrace();
                 }
             }

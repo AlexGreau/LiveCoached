@@ -5,11 +5,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
@@ -58,8 +60,7 @@ public class StartingActivity extends WearableActivity implements Decoder {
         firstOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                retrieveLastLocation();
-                sendToServer();
+                proceed();
             }
         });
     }
@@ -69,13 +70,18 @@ public class StartingActivity extends WearableActivity implements Decoder {
         secondOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                retrieveLastLocation();
-                sendToServer();
+                proceed();
             }
         });
     }
 
-    private void initLocation(){
+    private void proceed(){
+        retrieveLastLocation();
+        sendToServer();
+        //startTransitionActivity();
+    }
+
+    private void initLocation() {
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         checkLocationPermission();
     }
@@ -86,7 +92,13 @@ public class StartingActivity extends WearableActivity implements Decoder {
         client.execute();
     }
 
-    private void startMainActivity() {
+    private void startTransitionActivity() {
+        Intent intent = new Intent(StartingActivity.this, TransitionActivity.class);
+        intent.putExtra("state", 1);
+        startActivity(intent);
+    }
+
+    private void startMainActivity(){
         Intent intent = new Intent(StartingActivity.this, MainActivity.class);
         startActivity(intent);
     }
@@ -94,12 +106,17 @@ public class StartingActivity extends WearableActivity implements Decoder {
     @Override
     public void decodeResponse(String rep) {
         System.out.println("Starting Activity Decoder : " + rep);
-        if (rep.equals("Continue")) {
+          if (rep.equals("Continue")) {
             startMainActivity();
             finish();
         } else {
             System.out.println("invalid response : " + rep);
         }
+    }
+
+    @Override
+    public void errorMessage(String err) {
+        Toast.makeText(getApplicationContext(),err,Toast.LENGTH_LONG).show();
     }
 
     public void retrieveLastLocation() {
@@ -120,7 +137,7 @@ public class StartingActivity extends WearableActivity implements Decoder {
                 });
     }
 
-    private void actualizeLocationVariables( Location loc){
+    private void actualizeLocationVariables(Location loc) {
         wayLatitude = loc.getLatitude();
         wayLongitude = loc.getLongitude();
     }

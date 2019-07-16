@@ -2,6 +2,7 @@ package com.example.livecoached;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -15,6 +16,7 @@ import android.support.wearable.activity.WearableActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -269,8 +271,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             stopLocationUpdates();
             locationUpdateRequested = false;
             sendActualPosition("Stop");
-            // TODO : transit to end screen, then to starting activity
+            startTransitionActivity();
             vibrate();
+            finish();
         } else {
             System.out.println("No locationUpdateRequested already");
         }
@@ -282,10 +285,27 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         myClientTask.execute();
     }
 
+    private void startTransitionActivity(){
+        Intent intent = new Intent(MainActivity.this, TransitionActivity.class);
+        intent.putExtra("state", 1);
+        startActivity(intent);
+    }
+
     @Override
     public void  decodeResponse(String rep) {
         System.out.println("Main Activity Decoder " + rep);
+        // if orders received from server act accordingly
+
+        // stop
+        // reset
+        // play
     }
+
+    @Override
+    public void errorMessage(String err) {
+        Toast.makeText(getApplicationContext(), err, Toast.LENGTH_LONG).show();
+    }
+
 
     @Override
     public void onSensorChanged(SensorEvent event) {

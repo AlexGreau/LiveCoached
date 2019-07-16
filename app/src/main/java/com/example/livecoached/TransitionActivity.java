@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.wearable.activity.WearableActivity;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.livecoached.Service.ClientTask;
 import com.example.livecoached.Service.Decoder;
@@ -15,7 +16,6 @@ public class TransitionActivity extends WearableActivity implements Decoder {
     private TextView textView;
     private int state;
     private String text, expectedResponse;
-    private int delay;
     private Class nextActivity;
     private ClientTask client;
 
@@ -30,6 +30,7 @@ public class TransitionActivity extends WearableActivity implements Decoder {
         getState();
         setupVariables();
         initText();
+        initClient();
     }
 
     protected void setupVariables() {
@@ -38,17 +39,15 @@ public class TransitionActivity extends WearableActivity implements Decoder {
             case 0:
                 // end of exp, wait for server orders to launch startingActivity
                 text = "Currenty waiting for server's response";
-                nextActivity = StartingActivity.class;
-                expectedResponse = "Reset";
-                initClient();
+                nextActivity = MainActivity.class;
+                expectedResponse = "Continue";
                 return;
 
             case 1:
                 // waiting for server response before launching mainActivity
                 text = "You finished the experiment, congrats !!";
-                nextActivity = MainActivity.class;
-                expectedResponse = "Continue";
-                initClient();
+                nextActivity = StartingActivity.class;
+                expectedResponse = "Reset";
                 return;
 
             case 2:
@@ -58,7 +57,6 @@ public class TransitionActivity extends WearableActivity implements Decoder {
             default:
                 text = "unexpected state";
                 expectedResponse = "";
-                delay = 10000;
                 nextActivity = MainActivity.class;
         }
     }
@@ -96,9 +94,16 @@ public class TransitionActivity extends WearableActivity implements Decoder {
 
     @Override
     public void decodeResponse(String rep) {
+        System.out.println("Transition Decoder : " + rep);
         if (rep.equals(expectedResponse)) {
             launchNextActivity();
             finish();
         }
     }
+
+    @Override
+    public void errorMessage(String err) {
+        Toast.makeText(getApplicationContext(), err, Toast.LENGTH_LONG).show();
+    }
+
 }
