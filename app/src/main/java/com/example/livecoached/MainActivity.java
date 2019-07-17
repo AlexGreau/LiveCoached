@@ -309,7 +309,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     public void decodeResponse(String rep) {
         System.out.println("Main Activity Decoder " + rep);
-        Pattern p = Pattern.compile("route:.*");
+        Pattern p = Pattern.compile("route:[[0-9]+\\.[0-9]+\\-[0-9]+\\.[0-9]+;]+");
         Matcher m = p.matcher(rep);
 
         // if orders received from server act accordingly
