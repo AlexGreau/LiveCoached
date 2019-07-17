@@ -118,7 +118,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     public void initLocation() {
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-       // checkLocationPermission();
+        // checkLocationPermission();
         initLocationSettings();
         initLocationRequest();
         initLocationCallback();
@@ -270,10 +270,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             System.out.println("stopping the experiment");
             stopLocationUpdates();
             locationUpdateRequested = false;
-            sendActualPosition("Stop");
-            startTransitionActivity();
             vibrate();
-            finish();
+            sendActualPosition("Stop");
+            startStartingActivity();
         } else {
             System.out.println("No locationUpdateRequested already");
         }
@@ -281,24 +280,34 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void sendActualPosition(String state) {
         String msg = state + ":" + wayLatitude + "-" + wayLongitude;
-        myClientTask = new ClientTask(msg,this);
+        myClientTask = new ClientTask(msg, this);
         myClientTask.execute();
     }
 
-    private void startTransitionActivity(){
+    private void startTransitionActivity() {
         Intent intent = new Intent(MainActivity.this, TransitionActivity.class);
         intent.putExtra("state", 1);
         startActivity(intent);
     }
 
+    private void startStartingActivity() {
+        Intent intent = new Intent(MainActivity.this, StartingActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
     @Override
-    public void  decodeResponse(String rep) {
+    public void decodeResponse(String rep) {
         System.out.println("Main Activity Decoder " + rep);
         // if orders received from server act accordingly
+        if (rep.equals("reset")) {
+            startStartingActivity();
+        } else if (rep.equals("stop")) {
+            startStartingActivity();
+        } else {
+            System.out.println("unexpected reply : " + rep);
+        }
 
-        // stop
-        // reset
-        // play
     }
 
     @Override
