@@ -21,6 +21,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.example.livecoached.Model.CriticalPoint;
 import com.example.livecoached.Service.ClientTask;
 import com.example.livecoached.Service.Decoder;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -36,6 +37,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,6 +67,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private Sensor orientationSensor;
 
+    private ArrayList<CriticalPoint> pathToFollow;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +84,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         initTestText();
         initButtons();
         initLocation();
+        initPath();
     }
 
     private void initButtons() {
@@ -109,8 +114,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void initTestText() {
         mTextView = (TextView) findViewById(R.id.text);
-        //  Sensor name="Cywee Magnetic field Sensor", vendor="CyWee Group Ltd.", version=2, type=2, maxRange=200.0, resolution=0.01, power=5.0, minDelay=10000}
-        //  Sensor name="akm09911 Magnetometer", vendor="AKM", version=1, type=2, maxRange=4900.0, resolution=0.6, power=0.23, minDelay=10000}
     }
 
     private void initSensors() {
@@ -175,6 +178,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 }
             }
         };
+    }
+
+    public void initPath(){
+        pathToFollow = new ArrayList<CriticalPoint>();
     }
 
     public void retrieveLastLocation() {
@@ -324,6 +331,19 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void extractRoute(String s){
         System.out.println("extracting route");
+        String mainParts [] = s.split(":");
+        System.out.println("main parts : " + mainParts[0] + ", " + mainParts[1]);
+        String infoParts [] = mainParts[1].split(";");
+        System.out.println("infoParts : " + infoParts[0]);
+        for (String info : infoParts) {
+            String latitude = info.split("-")[0];
+            String longitude = info.split("-")[1];
+            System.out.println("latitude " + latitude);
+            System.out.println("longitude " + longitude);
+            CriticalPoint criticalPoint = new CriticalPoint(latitude,longitude);
+            pathToFollow.add(criticalPoint);
+            System.out.println("added c point : " + criticalPoint);
+        }
     }
 
     @Override
