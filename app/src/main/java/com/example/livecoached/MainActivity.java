@@ -36,6 +36,9 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class MainActivity extends WearableActivity implements SensorEventListener, Decoder {
 
     private final String TAG = MainActivity.class.getSimpleName();
@@ -118,7 +121,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     public void initLocation() {
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        // checkLocationPermission();
         initLocationSettings();
         initLocationRequest();
         initLocationCallback();
@@ -261,6 +263,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             locationUpdateRequested = true;
             vibrate();
         } else {
+            sendActualPosition("Asking");
             System.out.println("Already locationUpdateRequested");
         }
     }
@@ -299,15 +302,28 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     public void decodeResponse(String rep) {
         System.out.println("Main Activity Decoder " + rep);
+        Pattern p = Pattern.compile("route:.*");
+        Matcher m = p.matcher(rep);
+
         // if orders received from server act accordingly
         if (rep.equals("reset")) {
             startStartingActivity();
         } else if (rep.equals("stop")) {
             startStartingActivity();
+        } else if (m.matches()){
+            // change layout
+            // parse the route
+            extractRoute(rep);
+            // start the feedback
         } else {
             System.out.println("unexpected reply : " + rep);
         }
 
+    }
+
+
+    private void extractRoute(String s){
+        System.out.println("extracting route");
     }
 
     @Override
