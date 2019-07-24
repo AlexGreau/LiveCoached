@@ -10,6 +10,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
@@ -53,6 +54,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private FusedLocationProviderClient fusedLocationProviderClient;
     private int locationRequestCode = 1000;
     private double wayLatitude = 0.0, wayLongitude = 0.0;
+    private double wayBearing = 0.0;
 
     // Location updates request
     private LocationRequest locationRequest;
@@ -134,7 +136,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void initLocationRequest() {
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(2 * 1000); // millis
+        locationRequest.setFastestInterval(3000); // millis
+        locationRequest.setInterval(5 * 1000); // millis
     }
 
     public void initLocationSettings() {
@@ -180,7 +183,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         };
     }
 
-    public void initPath(){
+    public void initPath() {
         pathToFollow = new ArrayList<CriticalPoint>();
     }
 
@@ -241,14 +244,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         //-1 - don't repeat
         final int indexInPatternToRepeat = -1;
         vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
-        System.out.println("vibrating");
     }
 
     public void actualizeLocationVariables(Location loc) {
         wayLatitude = loc.getLatitude();
         wayLongitude = loc.getLongitude();
-        mTextView.setText(String.format("%s -- %s", wayLatitude, wayLongitude));
-        System.out.println("new location values : " + wayLatitude + ", " + wayLongitude);
+        wayBearing = loc.getBearing();
+        mTextView.setText(String.format("%s -- %s; %s", wayLatitude, wayLongitude, wayBearing));
+        System.out.println("new location values : " + wayLatitude + ", " + wayLongitude + "; " + loc.hasBearing());
     }
 
     public void startLocationUpdates() {
@@ -311,15 +314,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         System.out.println("Main Activity Decoder " + rep);
         Pattern p = Pattern.compile("route:[[0-9]+\\.[0-9]+\\-[0-9]+\\.[0-9]+;]+");
         Matcher m = p.matcher(rep);
-
         // if orders received from server act accordingly
         if (rep.equals("reset")) {
             startStartingActivity();
         } else if (rep.equals("stop")) {
             startStartingActivity();
-        } else if (m.matches()){
+        } else if (m.matches()) {
             // change layout
-            // parse the route
             extractRoute(rep);
             // start the feedback
         } else {
@@ -328,21 +329,16 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     }
 
-
-    private void extractRoute(String s){
+    private void extractRoute(String s) {
         System.out.println("extracting route");
-        String mainParts [] = s.split(":");
-        System.out.println("main parts : " + mainParts[0] + ", " + mainParts[1]);
-        String infoParts [] = mainParts[1].split(";");
-        System.out.println("infoParts : " + infoParts[0]);
+        String mainParts[] = s.split(":");
+        String infoParts[] = mainParts[1].split(";");
         for (String info : infoParts) {
             String latitude = info.split("-")[0];
             String longitude = info.split("-")[1];
-            System.out.println("latitude " + latitude);
-            System.out.println("longitude " + longitude);
-            CriticalPoint criticalPoint = new CriticalPoint(latitude,longitude);
+            CriticalPoint criticalPoint = new CriticalPoint(latitude, longitude);
             pathToFollow.add(criticalPoint);
-            System.out.println("added c point : " + criticalPoint);
+            System.out.println("added c point ; " + criticalPoint);
         }
     }
 
