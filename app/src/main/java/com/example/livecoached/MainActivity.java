@@ -347,7 +347,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             System.out.println("location produced : " + loc);
 
             if (actualLocation != null){
-                System.out.println("distance To : " + actualLocation.distanceTo(loc));
+                System.out.println("bearing To : " + actualLocation.bearingTo(loc));
             }
         }
     }
