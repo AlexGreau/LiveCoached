@@ -70,6 +70,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private Sensor orientationSensor;
 
     private ArrayList<CriticalPoint> pathToFollow;
+    private Location actualLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,8 +137,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void initLocationRequest() {
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setFastestInterval(3000); // millis
-        locationRequest.setInterval(5 * 1000); // millis
+        locationRequest.setInterval(3 * 1000); // millis
     }
 
     public void initLocationSettings() {
@@ -177,6 +177,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     if (location != null) {
                         actualizeLocationVariables(location);
                         sendActualPosition("Running");
+                    } else {
+                        System.out.println("location in callback is null" );
                     }
                 }
             }
@@ -200,6 +202,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                         if (location != null) {
                             actualizeLocationVariables(location);
                         }
+                        System.out.println("success getting last location ! null ? " + location);
                     }
                 });
         if (fusedLocationProviderClient != null) {
@@ -247,11 +250,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void actualizeLocationVariables(Location loc) {
+        System.out.println("actualizing to this location : " + loc);
+        this.actualLocation = loc;
         wayLatitude = loc.getLatitude();
         wayLongitude = loc.getLongitude();
         wayBearing = loc.getBearing();
         mTextView.setText(String.format("%s -- %s; %s", wayLatitude, wayLongitude, wayBearing));
-        System.out.println("new location values : " + wayLatitude + ", " + wayLongitude + "; " + loc.hasBearing());
     }
 
     public void startLocationUpdates() {
@@ -311,7 +315,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public void decodeResponse(String rep) {
-        System.out.println("Main Activity Decoder " + rep);
+        // System.out.println("Main Activity Decoder " + rep);
         Pattern p = Pattern.compile("route:[[0-9]+\\.[0-9]+\\-[0-9]+\\.[0-9]+;]+");
         Matcher m = p.matcher(rep);
         // if orders received from server act accordingly
@@ -326,11 +330,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         } else {
             System.out.println("unexpected reply : " + rep);
         }
-
     }
 
     private void extractRoute(String s) {
-        System.out.println("extracting route");
         String mainParts[] = s.split(":");
         String infoParts[] = mainParts[1].split(";");
         for (String info : infoParts) {
@@ -338,7 +340,15 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             String longitude = info.split("-")[1];
             CriticalPoint criticalPoint = new CriticalPoint(latitude, longitude);
             pathToFollow.add(criticalPoint);
-            System.out.println("added c point ; " + criticalPoint);
+
+            Location loc = new Location(LocationManager.GPS_PROVIDER);
+            loc.setLatitude(Double.parseDouble(latitude));
+            loc.setLongitude(Double.parseDouble(longitude));
+            System.out.println("location produced : " + loc);
+
+            if (actualLocation != null){
+                System.out.println("distance To : " + actualLocation.distanceTo(loc));
+            }
         }
     }
 
@@ -346,7 +356,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void errorMessage(String err) {
         Toast.makeText(getApplicationContext(), err, Toast.LENGTH_LONG).show();
     }
-
 
     @Override
     public void onSensorChanged(SensorEvent event) {
