@@ -10,6 +10,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
@@ -21,6 +22,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.example.livecoached.Model.CriticalPoint;
 import com.example.livecoached.Service.ClientTask;
 import com.example.livecoached.Service.Decoder;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -36,6 +38,10 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class MainActivity extends WearableActivity implements SensorEventListener, Decoder {
 
     private final String TAG = MainActivity.class.getSimpleName();
@@ -48,6 +54,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private FusedLocationProviderClient fusedLocationProviderClient;
     private int locationRequestCode = 1000;
     private double wayLatitude = 0.0, wayLongitude = 0.0;
+    private double wayBearing = 0.0;
 
     // Location updates request
     private LocationRequest locationRequest;
@@ -61,6 +68,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private Button stopButton;
 
     private Sensor orientationSensor;
+
+    private ArrayList<CriticalPoint> pathToFollow;
+    private Location actualLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +87,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         initTestText();
         initButtons();
         initLocation();
+        initPath();
     }
 
     private void initButtons() {
@@ -106,8 +117,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void initTestText() {
         mTextView = (TextView) findViewById(R.id.text);
-        //  Sensor name="Cywee Magnetic field Sensor", vendor="CyWee Group Ltd.", version=2, type=2, maxRange=200.0, resolution=0.01, power=5.0, minDelay=10000}
-        //  Sensor name="akm09911 Magnetometer", vendor="AKM", version=1, type=2, maxRange=4900.0, resolution=0.6, power=0.23, minDelay=10000}
     }
 
     private void initSensors() {
@@ -118,7 +127,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     public void initLocation() {
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-       // checkLocationPermission();
         initLocationSettings();
         initLocationRequest();
         initLocationCallback();
@@ -129,7 +137,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void initLocationRequest() {
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(2 * 1000); // millis
+        locationRequest.setInterval(3 * 1000); // millis
     }
 
     public void initLocationSettings() {
@@ -169,10 +177,16 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     if (location != null) {
                         actualizeLocationVariables(location);
                         sendActualPosition("Running");
+                    } else {
+                        System.out.println("location in callback is null" );
                     }
                 }
             }
         };
+    }
+
+    public void initPath() {
+        pathToFollow = new ArrayList<CriticalPoint>();
     }
 
     public void retrieveLastLocation() {
@@ -188,6 +202,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                         if (location != null) {
                             actualizeLocationVariables(location);
                         }
+                        System.out.println("success getting last location ! null ? " + location);
                     }
                 });
         if (fusedLocationProviderClient != null) {
@@ -232,14 +247,15 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         //-1 - don't repeat
         final int indexInPatternToRepeat = -1;
         vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
-        System.out.println("vibrating");
     }
 
     public void actualizeLocationVariables(Location loc) {
+        System.out.println("actualizing to this location : " + loc);
+        this.actualLocation = loc;
         wayLatitude = loc.getLatitude();
         wayLongitude = loc.getLongitude();
-        mTextView.setText(String.format("%s -- %s", wayLatitude, wayLongitude));
-        System.out.println("new location values : " + wayLatitude + ", " + wayLongitude);
+        wayBearing = loc.getBearing();
+        mTextView.setText(String.format("%s -- %s; %s", wayLatitude, wayLongitude, wayBearing));
     }
 
     public void startLocationUpdates() {
@@ -261,6 +277,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             locationUpdateRequested = true;
             vibrate();
         } else {
+            sendActualPosition("Asking");
             System.out.println("Already locationUpdateRequested");
         }
     }
@@ -270,10 +287,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             System.out.println("stopping the experiment");
             stopLocationUpdates();
             locationUpdateRequested = false;
-            sendActualPosition("Stop");
-            startTransitionActivity();
             vibrate();
-            finish();
+            sendActualPosition("Stop");
+            startStartingActivity();
         } else {
             System.out.println("No locationUpdateRequested already");
         }
@@ -281,31 +297,65 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void sendActualPosition(String state) {
         String msg = state + ":" + wayLatitude + "-" + wayLongitude;
-        myClientTask = new ClientTask(msg,this);
+        myClientTask = new ClientTask(msg, this);
         myClientTask.execute();
     }
 
-    private void startTransitionActivity(){
+    private void startTransitionActivity() {
         Intent intent = new Intent(MainActivity.this, TransitionActivity.class);
         intent.putExtra("state", 1);
         startActivity(intent);
     }
 
-    @Override
-    public void  decodeResponse(String rep) {
-        System.out.println("Main Activity Decoder " + rep);
-        // if orders received from server act accordingly
+    private void startStartingActivity() {
+        Intent intent = new Intent(MainActivity.this, StartingActivity.class);
+        startActivity(intent);
+        finish();
+    }
 
-        // stop
-        // reset
-        // play
+    @Override
+    public void decodeResponse(String rep) {
+        // System.out.println("Main Activity Decoder " + rep);
+        Pattern p = Pattern.compile("route:[[0-9]+\\.[0-9]+\\-[0-9]+\\.[0-9]+;]+");
+        Matcher m = p.matcher(rep);
+        // if orders received from server act accordingly
+        if (rep.equals("reset")) {
+            startStartingActivity();
+        } else if (rep.equals("stop")) {
+            startStartingActivity();
+        } else if (m.matches()) {
+            // change layout
+            extractRoute(rep);
+            // start the feedback
+        } else {
+            System.out.println("unexpected reply : " + rep);
+        }
+    }
+
+    private void extractRoute(String s) {
+        String mainParts[] = s.split(":");
+        String infoParts[] = mainParts[1].split(";");
+        for (String info : infoParts) {
+            String latitude = info.split("-")[0];
+            String longitude = info.split("-")[1];
+            CriticalPoint criticalPoint = new CriticalPoint(latitude, longitude);
+            pathToFollow.add(criticalPoint);
+
+            Location loc = new Location(LocationManager.GPS_PROVIDER);
+            loc.setLatitude(Double.parseDouble(latitude));
+            loc.setLongitude(Double.parseDouble(longitude));
+            System.out.println("location produced : " + loc);
+
+            if (actualLocation != null){
+                System.out.println("bearing To : " + actualLocation.bearingTo(loc));
+            }
+        }
     }
 
     @Override
     public void errorMessage(String err) {
         Toast.makeText(getApplicationContext(), err, Toast.LENGTH_LONG).show();
     }
-
 
     @Override
     public void onSensorChanged(SensorEvent event) {

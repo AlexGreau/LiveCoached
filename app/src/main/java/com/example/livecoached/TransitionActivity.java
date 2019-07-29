@@ -30,7 +30,6 @@ public class TransitionActivity extends WearableActivity implements Decoder {
         getState();
         setupVariables();
         initText();
-        initClient();
     }
 
     protected void setupVariables() {
@@ -48,6 +47,7 @@ public class TransitionActivity extends WearableActivity implements Decoder {
                 text = "You finished the experiment, congrats !!";
                 nextActivity = StartingActivity.class;
                 expectedResponse = "Reset";
+                sendToServer();
                 return;
 
             case 2:
@@ -70,20 +70,8 @@ public class TransitionActivity extends WearableActivity implements Decoder {
         state = getIntent().getIntExtra("state", 0);
     }
 
-    protected void timeBomb(int miliDelay) {
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                // action to do after delay
-                launchNextActivity();
-                finish();
-            }
-        }, miliDelay);
-    }
-
-    protected void initClient() {
-        client = new ClientTask(null, this);
+    protected void sendToServer() {
+        client = new ClientTask("End", this);
         client.execute();
     }
 

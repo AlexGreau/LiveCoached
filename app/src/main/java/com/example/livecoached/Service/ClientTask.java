@@ -1,8 +1,6 @@
 package com.example.livecoached.Service;
 
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.widget.Toast;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -33,6 +31,10 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
         dstPort = PORT;
         msgToServer = msgTo;
         this.activity = act;
+    }
+
+    public void setMasgToServer(String s){
+        this.msgToServer = s;
     }
 
     @Override
