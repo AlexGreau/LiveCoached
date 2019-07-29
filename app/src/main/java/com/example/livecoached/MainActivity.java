@@ -2,6 +2,7 @@ package com.example.livecoached;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -9,17 +10,19 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.example.livecoached.Service.ClientTask;
+import com.example.livecoached.Service.Decoder;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -33,21 +36,13 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.Socket;
-import java.net.UnknownHostException;
-
-public class MainActivity extends WearableActivity implements SensorEventListener {
+public class MainActivity extends WearableActivity implements SensorEventListener, Decoder {
 
     private final String TAG = MainActivity.class.getSimpleName();
-    private final int PORT = 8080;
-    private final String SERVER_IP = "192.168.43.239";
     private final static int REQUEST_CHECK_SETTINGS = 6;
 
     // communication
-    private MyClientTask myClientTask;
+    private ClientTask myClientTask;
 
     // Fused Location
     private FusedLocationProviderClient fusedLocationProviderClient;
@@ -67,8 +62,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private Sensor orientationSensor;
 
-    private String orders;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,7 +76,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         initSensors();
         initTestText();
         initButtons();
-        initConnection();
         initLocation();
     }
 
@@ -124,13 +116,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
-    public void initConnection() {
-        System.out.println("initiating connection");
-    }
-
     public void initLocation() {
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        checkLocationPermission();
+       // checkLocationPermission();
         initLocationSettings();
         initLocationRequest();
         initLocationCallback();
@@ -149,12 +137,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 .addLocationRequest(locationRequest);
         SettingsClient client = LocationServices.getSettingsClient(this);
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-        task.addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
-            @Override
-            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                System.out.println("task successful");
-            }
-        });
 
         task.addOnFailureListener(this, new OnFailureListener() {
             @Override
@@ -186,7 +168,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 for (Location location : locationResult.getLocations()) {
                     if (location != null) {
                         actualizeLocationVariables(location);
-                        sendActualPosition();
+                        sendActualPosition("Running");
                     }
                 }
             }
@@ -203,10 +185,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     @Override
                     public void onSuccess(Location location) {
                         // Got last known location. In some rare situations this can be null.
-                        System.out.println("got last location");
                         if (location != null) {
-                            System.out.println("last location is not null");
-                            // Logic to handle location object
                             actualizeLocationVariables(location);
                         }
                     }
@@ -230,10 +209,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 public void onSuccess(Location location) {
                     System.out.println("Permission granted !");
                     if (location != null) {
-                        System.out.println("initializing location variables");
                         actualizeLocationVariables(location);
                     } else {
-                        System.out.println("first location is null");
+                        System.out.println("last location is null");
                     }
                 }
             });
@@ -276,10 +254,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
-    private void playerIsReady() {
-        sendActualPosition();
-    }
-
     private void startExp() {
         if (!locationUpdateRequested) {
             System.out.println("Starting the experiment");
@@ -296,19 +270,42 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             System.out.println("stopping the experiment");
             stopLocationUpdates();
             locationUpdateRequested = false;
+            sendActualPosition("Stop");
+            startTransitionActivity();
             vibrate();
+            finish();
         } else {
             System.out.println("No locationUpdateRequested already");
         }
     }
 
-    private void sendActualPosition() {
-        String msg = wayLatitude + "-" + wayLongitude;
-        myClientTask = new MyClientTask(SERVER_IP,
-                PORT, msg);
-        System.out.println("Sent : " + msg);
+    private void sendActualPosition(String state) {
+        String msg = state + ":" + wayLatitude + "-" + wayLongitude;
+        myClientTask = new ClientTask(msg,this);
         myClientTask.execute();
     }
+
+    private void startTransitionActivity(){
+        Intent intent = new Intent(MainActivity.this, TransitionActivity.class);
+        intent.putExtra("state", 1);
+        startActivity(intent);
+    }
+
+    @Override
+    public void  decodeResponse(String rep) {
+        System.out.println("Main Activity Decoder " + rep);
+        // if orders received from server act accordingly
+
+        // stop
+        // reset
+        // play
+    }
+
+    @Override
+    public void errorMessage(String err) {
+        Toast.makeText(getApplicationContext(), err, Toast.LENGTH_LONG).show();
+    }
+
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -331,90 +328,5 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         super.onPause();
         sensorManager.unregisterListener(this);
         stopLocationUpdates();
-    }
-
-    public class MyClientTask extends AsyncTask<Void, Void, Void> {
-
-        String dstAddress;
-        int dstPort;
-        String response = "";
-        String msgToServer;
-
-        MyClientTask(String addr, int port, String msgTo) {
-            dstAddress = addr;
-            dstPort = port;
-            msgToServer = msgTo;
-        }
-
-        @Override
-        protected Void doInBackground(Void... arg0) {
-
-            Socket socket = null;
-            DataOutputStream dataOutputStream = null;
-            DataInputStream dataInputStream = null;
-
-            try {
-                socket = new Socket(dstAddress, dstPort);
-                dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                dataInputStream = new DataInputStream(socket.getInputStream());
-
-                if (msgToServer != null) {
-                    dataOutputStream.writeUTF(msgToServer);
-                }
-
-                response = dataInputStream.readUTF();
-
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-                response = "UnknownHostException: " + e.toString();
-            } catch (IOException e) {
-                e.printStackTrace();
-                response = "IOException: " + e.toString();
-            } finally {
-                if (socket != null) {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if (dataOutputStream != null) {
-                    try {
-                        dataOutputStream.close();
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-
-                if (dataInputStream != null) {
-                    try {
-                        dataInputStream.close();
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            System.out.println(response);
-            super.onPostExecute(result);
-            decodeResponse(response);
-        }
-
-        private void decodeResponse(String rep) {
-            // after receiving the message from tablet, must know the orders that it contained
-            if (rep == null || rep.isEmpty()) {
-                System.out.println("Response not acceptable : " + rep);
-            } else {
-                orders = rep;
-                System.out.println("Here are the orders received :" + orders);
-            }
-        }
     }
 }
