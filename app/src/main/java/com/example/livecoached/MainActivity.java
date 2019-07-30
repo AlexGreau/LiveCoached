@@ -22,7 +22,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import com.example.livecoached.Model.CriticalPoint;
 import com.example.livecoached.Service.ClientTask;
 import com.example.livecoached.Service.Decoder;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -69,7 +68,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private Sensor orientationSensor;
 
-    private ArrayList<CriticalPoint> pathToFollow;
+    private ArrayList<Location> pathToFollow;
     private Location actualLocation;
 
     @Override
@@ -186,7 +185,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void initPath() {
-        pathToFollow = new ArrayList<CriticalPoint>();
+        pathToFollow = new ArrayList<Location>();
     }
 
     public void retrieveLastLocation() {
@@ -336,14 +335,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         String mainParts[] = s.split(":");
         String infoParts[] = mainParts[1].split(";");
         for (String info : infoParts) {
+            Location loc = new Location (LocationManager.GPS_PROVIDER);
             String latitude = info.split("-")[0];
             String longitude = info.split("-")[1];
-            CriticalPoint criticalPoint = new CriticalPoint(latitude, longitude);
-            pathToFollow.add(criticalPoint);
-
-            Location loc = new Location(LocationManager.GPS_PROVIDER);
             loc.setLatitude(Double.parseDouble(latitude));
             loc.setLongitude(Double.parseDouble(longitude));
+            pathToFollow.add(loc);
             System.out.println("location produced : " + loc);
 
             if (actualLocation != null){
