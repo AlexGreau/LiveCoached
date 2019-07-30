@@ -249,7 +249,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void actualizeLocationVariables(Location loc) {
-        System.out.println("actualizing to this location : " + loc);
         this.actualLocation = loc;
         wayLatitude = loc.getLatitude();
         wayLongitude = loc.getLongitude();
@@ -344,7 +343,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             System.out.println("location produced : " + loc);
 
             if (actualLocation != null){
-                System.out.println("bearing To : " + actualLocation.bearingTo(loc));
+                System.out.println("bearing To : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size()-1)));
             }
         }
     }
