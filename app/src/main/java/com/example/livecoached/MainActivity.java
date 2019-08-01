@@ -38,6 +38,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.EventListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,6 +68,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private Button stopButton;
 
     private Sensor orientationSensor;
+    private SensorEventListener orientationListener;
 
     private ArrayList<Location> pathToFollow;
     private Location actualLocation;
@@ -121,7 +123,18 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void initSensors() {
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-        sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        orientationListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                System.out.println("Azimuth : " + event.values[0]);
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                System.out.println("orientation sensor accuracy changed");
+            }
+        };
+        sensorManager.registerListener( orientationListener,orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     public void initLocation() {
@@ -340,11 +353,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             loc.setLatitude(Double.parseDouble(latitude));
             loc.setLongitude(Double.parseDouble(longitude));
             pathToFollow.add(loc);
-            System.out.println("location produced : " + loc);
+            System.out.println("new location produced : " + loc);
+        }
 
-            if (actualLocation != null){
-                System.out.println("bearing To : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size()-1)));
-            }
+        if (actualLocation != null){
+            System.out.println("bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size()-1)));
         }
     }
 

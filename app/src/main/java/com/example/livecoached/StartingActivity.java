@@ -101,7 +101,6 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     @Override
     public void decodeResponse(String rep) {
-        // System.out.println("Starting Activity Decoder : " + rep);
         if (rep.equals("Continue")) {
             startMainActivity();
             finish();
