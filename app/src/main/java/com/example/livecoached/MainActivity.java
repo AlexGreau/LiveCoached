@@ -216,7 +216,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                         if (location != null) {
                             actualizeLocationVariables(location);
                         }
-                        System.out.println("success getting last location ! null ? " + location);
+                        System.out.println("last Location :" + location);
                     }
                 });
         if (fusedLocationProviderClient != null) {
@@ -374,7 +374,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        System.out.println("Sensors' accuracy changed");
+        // System.out.println("Sensors' accuracy changed");
     }
 
     @Override
