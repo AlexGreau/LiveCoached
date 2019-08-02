@@ -68,7 +68,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private Button stopButton;
 
     private Sensor orientationSensor;
-    private SensorEventListener orientationListener;
+    private double azimuth;
 
     private ArrayList<Location> pathToFollow;
     private Location actualLocation;
@@ -123,18 +123,20 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void initSensors() {
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-        orientationListener = new SensorEventListener() {
-            @Override
-            public void onSensorChanged(SensorEvent event) {
-                System.out.println("Azimuth : " + event.values[0]);
-            }
+        sensorManager.registerListener(this,orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
 
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int accuracy) {
-                System.out.println("orientation sensor accuracy changed");
-            }
-        };
-        sensorManager.registerListener( orientationListener,orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
+
+
+        Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (accelerometer != null) {
+            sensorManager.registerListener(this, accelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+        Sensor magneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        if (magneticField != null) {
+            sensorManager.registerListener(this, magneticField,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
     }
 
     public void initLocation() {
@@ -312,12 +314,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         myClientTask.execute();
     }
 
-    private void startTransitionActivity() {
-        Intent intent = new Intent(MainActivity.this, TransitionActivity.class);
-        intent.putExtra("state", 1);
-        startActivity(intent);
-    }
-
     private void startStartingActivity() {
         Intent intent = new Intent(MainActivity.this, StartingActivity.class);
         startActivity(intent);
@@ -357,7 +353,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
 
         if (actualLocation != null){
-            System.out.println("bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size()-1)));
+            System.out.println("bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size()-1)) + ", Azimuth : " + azimuth);
         }
     }
 
@@ -368,7 +364,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
+        if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
+            azimuth = event.values[0];
+        } else {
+            mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
+        }
+
     }
 
     @Override
@@ -380,6 +381,16 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (accelerometer != null) {
+            sensorManager.registerListener(this, accelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+        Sensor magneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        if (magneticField != null) {
+            sensorManager.registerListener(this, magneticField,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
     }
 
     @Override
