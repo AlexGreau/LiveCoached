@@ -14,6 +14,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -79,6 +80,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         checkHardware();
         init();
         setAmbientEnabled();
+        System.out.println(TAG);
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~ init functions ~~~~~~~~~~~~~~~~~~~~~~
@@ -353,7 +355,31 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
 
         if (actualLocation != null){
-            System.out.println("bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size()-1)) + ", Azimuth : " + azimuth);
+            Log.d(TAG,"bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size()-1)) + ", Azimuth : " + azimuth);
+            getCorrection();
+        }
+    }
+
+    public void getCorrection(){
+
+        double idealAngle = actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1));
+        if (idealAngle <= 0) {
+            idealAngle += 360;
+        }
+        // compare ideal angle to actual angle
+        double diffAngles = idealAngle - azimuth;
+        double tolerance = 5; // with x degrees error allowed
+
+        if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0){
+            // on the good angle
+            Log.d(TAG,"on the correct path");
+        }
+        else if (diffAngles < 0) {
+            // left
+            Log.d(TAG,"go to the left");
+        } else {
+            // right
+            Log.d(TAG,"go to the right");
         }
     }
 
@@ -369,7 +395,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         } else {
             mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
         }
-
     }
 
     @Override
