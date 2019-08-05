@@ -360,7 +360,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void getCorrection(){
-
         double idealAngle = actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1));
         if (idealAngle <= 0) {
             idealAngle += 360;
