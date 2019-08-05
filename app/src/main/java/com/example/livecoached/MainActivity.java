@@ -270,7 +270,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         wayLatitude = loc.getLatitude();
         wayLongitude = loc.getLongitude();
         wayBearing = loc.getBearing();
-        mTextView.setText(String.format("%s -- %s; %s", wayLatitude, wayLongitude, wayBearing));
     }
 
     public void startLocationUpdates() {
@@ -368,19 +367,22 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
         // compare ideal angle to actual angle
         double diffAngles = idealAngle - azimuth;
-        double tolerance = 5; // with x degrees error allowed
+        double tolerance = 10; // with x degrees error allowed
+        String message = "please move to a direction";
 
         if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0){
             // on the good angle
-            Log.d(TAG,"on the correct path");
+            message = "on the correct path";
         }
         else if (diffAngles < 0) {
             // left
-            Log.d(TAG,"go to the left");
+           message = "go to the left";
         } else {
             // right
-            Log.d(TAG,"go to the right");
+            message = "go to the right";
         }
+        Log.d(TAG,message);
+        mTextView.setText(message);
     }
 
     @Override
@@ -393,7 +395,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
             azimuth = event.values[0];
         } else {
-            mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
+            // mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
+            if (pathToFollow.size() > 1){
+                getCorrection();
+            }
         }
     }
 
