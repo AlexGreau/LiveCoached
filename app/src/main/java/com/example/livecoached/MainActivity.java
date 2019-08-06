@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -413,9 +414,29 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     }
 
+    public boolean handleWristGestureIN(){
+        boolean handled = false;
+        // for now
+        handled = true;
+        return handled;
+    }
+
+    public boolean handleWristGestureOUT(){
+        Log.d(TAG,"handling wrist OUT gesture");
+        boolean handled = false;
+        if (!locationUpdateRequested){
+            startExp();
+            handled = true;
+        } else {
+            stopExp();
+            handled = true;
+        }
+        return handled;
+    }
+
     @Override
     public void errorMessage(String err) {
-        Toast.makeText(getApplicationContext(), err, Toast.LENGTH_LONG).show();
+        System.err.println(err);
     }
 
     @Override
@@ -428,6 +449,21 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 getCorrection();
             }
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Log.d(TAG, "key down");
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_NAVIGATE_NEXT:
+                // flick wrist out
+                return handleWristGestureOUT();
+            case KeyEvent.KEYCODE_NAVIGATE_PREVIOUS:
+                //flick wrist in
+                return handleWristGestureIN();
+        }
+        // If you did not handle it, let it be handled by the next possible element as deemed by the Activity.
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
