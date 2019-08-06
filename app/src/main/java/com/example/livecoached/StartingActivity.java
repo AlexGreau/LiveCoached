@@ -3,10 +3,12 @@ package com.example.livecoached;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,7 +25,7 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     // UI components
     private TextView text;
-    private ImageButton firstOption;
+    private Button firstOption;
     private ImageButton secondOption;
 
     // Client
@@ -44,7 +46,6 @@ public class StartingActivity extends WearableActivity implements Decoder {
     private void init() {
         initText();
         initFirstOptionButton();
-        initSecondOptionButton();
         initLocation();
     }
 
@@ -55,17 +56,9 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     private void initFirstOptionButton() {
         firstOption = findViewById(R.id.firstOptionButton);
+        firstOption.setText("Yes !");
+        firstOption.setTextColor(Color.WHITE);
         firstOption.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                proceed();
-            }
-        });
-    }
-
-    private void initSecondOptionButton() {
-        secondOption = findViewById(R.id.secondOptionButton);
-        secondOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 proceed();
@@ -101,7 +94,6 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     @Override
     public void decodeResponse(String rep) {
-        // System.out.println("Starting Activity Decoder : " + rep);
         if (rep.equals("Continue")) {
             startMainActivity();
             finish();

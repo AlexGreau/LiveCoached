@@ -14,6 +14,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -22,7 +23,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import com.example.livecoached.Model.CriticalPoint;
 import com.example.livecoached.Service.ClientTask;
 import com.example.livecoached.Service.Decoder;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -39,6 +39,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.EventListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,8 +69,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private Button stopButton;
 
     private Sensor orientationSensor;
+    private double azimuth;
 
-    private ArrayList<CriticalPoint> pathToFollow;
+    private ArrayList<Location> pathToFollow;
     private Location actualLocation;
 
     @Override
@@ -78,6 +80,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         checkHardware();
         init();
         setAmbientEnabled();
+        System.out.println(TAG);
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~ init functions ~~~~~~~~~~~~~~~~~~~~~~
@@ -122,7 +125,20 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void initSensors() {
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-        sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        sensorManager.registerListener(this,orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
+
+
+
+        Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (accelerometer != null) {
+            sensorManager.registerListener(this, accelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+        Sensor magneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        if (magneticField != null) {
+            sensorManager.registerListener(this, magneticField,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
     }
 
     public void initLocation() {
@@ -186,7 +202,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void initPath() {
-        pathToFollow = new ArrayList<CriticalPoint>();
+        pathToFollow = new ArrayList<Location>();
     }
 
     public void retrieveLastLocation() {
@@ -202,7 +218,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                         if (location != null) {
                             actualizeLocationVariables(location);
                         }
-                        System.out.println("success getting last location ! null ? " + location);
+                        System.out.println("last Location :" + location);
                     }
                 });
         if (fusedLocationProviderClient != null) {
@@ -250,12 +266,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void actualizeLocationVariables(Location loc) {
-        System.out.println("actualizing to this location : " + loc);
         this.actualLocation = loc;
         wayLatitude = loc.getLatitude();
         wayLongitude = loc.getLongitude();
         wayBearing = loc.getBearing();
-        mTextView.setText(String.format("%s -- %s; %s", wayLatitude, wayLongitude, wayBearing));
     }
 
     public void startLocationUpdates() {
@@ -301,12 +315,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         myClientTask.execute();
     }
 
-    private void startTransitionActivity() {
-        Intent intent = new Intent(MainActivity.this, TransitionActivity.class);
-        intent.putExtra("state", 1);
-        startActivity(intent);
-    }
-
     private void startStartingActivity() {
         Intent intent = new Intent(MainActivity.this, StartingActivity.class);
         startActivity(intent);
@@ -336,20 +344,44 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         String mainParts[] = s.split(":");
         String infoParts[] = mainParts[1].split(";");
         for (String info : infoParts) {
+            Location loc = new Location (LocationManager.GPS_PROVIDER);
             String latitude = info.split("-")[0];
             String longitude = info.split("-")[1];
-            CriticalPoint criticalPoint = new CriticalPoint(latitude, longitude);
-            pathToFollow.add(criticalPoint);
-
-            Location loc = new Location(LocationManager.GPS_PROVIDER);
             loc.setLatitude(Double.parseDouble(latitude));
             loc.setLongitude(Double.parseDouble(longitude));
-            System.out.println("location produced : " + loc);
-
-            if (actualLocation != null){
-                System.out.println("bearing To : " + actualLocation.bearingTo(loc));
-            }
+            pathToFollow.add(loc);
+            System.out.println("new location produced : " + loc);
         }
+
+        if (actualLocation != null){
+            Log.d(TAG,"bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size()-1)) + ", Azimuth : " + azimuth);
+            getCorrection();
+        }
+    }
+
+    public void getCorrection(){
+        double idealAngle = actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1));
+        if (idealAngle <= 0) {
+            idealAngle += 360;
+        }
+        // compare ideal angle to actual angle
+        double diffAngles = idealAngle - azimuth;
+        double tolerance = 10; // with x degrees error allowed
+        String message = "please move to a direction";
+
+        if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0){
+            // on the good angle
+            message = "on the correct path";
+        }
+        else if (diffAngles < 0) {
+            // left
+           message = "go to the left";
+        } else {
+            // right
+            message = "go to the right";
+        }
+        Log.d(TAG,message);
+        mTextView.setText(message);
     }
 
     @Override
@@ -359,18 +391,35 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
+        if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
+            azimuth = event.values[0];
+        } else {
+            // mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
+            if (pathToFollow.size() > 1){
+                getCorrection();
+            }
+        }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        System.out.println("Sensors' accuracy changed");
+        // System.out.println("Sensors' accuracy changed");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (accelerometer != null) {
+            sensorManager.registerListener(this, accelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+        Sensor magneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        if (magneticField != null) {
+            sensorManager.registerListener(this, magneticField,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
     }
 
     @Override
