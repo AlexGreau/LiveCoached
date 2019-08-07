@@ -243,7 +243,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         } else if (diffAngles < 0) {
             // left
             message = "go to the left";
-        } else if (diffAngles > 0){
+        } else if (diffAngles > 0) {
             // right
             message = "go to the right";
         } else {
