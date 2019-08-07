@@ -68,7 +68,6 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
             System.out.println("zeub");
         }
 
-
         finally {
             if (socket != null) {
                 try {
