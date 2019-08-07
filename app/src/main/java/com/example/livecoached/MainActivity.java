@@ -36,6 +36,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -260,7 +261,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             return;
         } else {
             double mesuredDistance = actualLocation.distanceTo(pathToFollow.get(indexNextCP));
-            distanceText.setText(mesuredDistance + " m to go");
+            DecimalFormat df = new DecimalFormat("#.##");
+            distanceText.setText(df.format(mesuredDistance)+ " m");
             if (mesuredDistance <= tolerance){
                 // target reached
                 if (indexNextCP == pathToFollow.size()-1){
@@ -288,9 +290,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     public void actualizeLocationVariables(Location loc) {
         this.actualLocation = loc;
-        if (indexNextCP != 0) {
-            distanceText.setText(actualLocation.distanceTo(pathToFollow.get(indexNextCP)) + "m");
-        }
     }
 
     public void startLocationUpdates() {
