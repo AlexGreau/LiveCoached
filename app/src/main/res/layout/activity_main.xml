@@ -20,8 +20,8 @@
             android:id="@+id/angle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="flick your wrist out"
-            android:textSize="20sp"
+            android:text="flick your wrist out to start"
+            android:textSize="25sp"
             android:layout_centerInParent="true"
             />
 
@@ -30,8 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/angle"
             android:id="@+id/distance"
-            android:text="to start"
-            android:textSize="30sp"
+            android:textSize="50sp"
             android:layout_centerInParent="true"
             />
     </RelativeLayout>
