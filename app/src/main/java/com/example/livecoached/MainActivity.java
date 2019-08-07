@@ -417,10 +417,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public boolean handleWristGestureIN(){
-        boolean handled = false;
-        // for now
-        handled = true;
-        return handled;
+        if (locationUpdateRequested){
+            sendActualPosition("Asking");
+        }
+        return true;
     }
 
     public boolean handleWristGestureOUT(){
