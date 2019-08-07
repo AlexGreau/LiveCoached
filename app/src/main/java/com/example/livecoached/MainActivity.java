@@ -16,10 +16,7 @@ import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -39,8 +36,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,24 +52,21 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // Fused Location
     private FusedLocationProviderClient fusedLocationProviderClient;
     private int locationRequestCode = 1000;
-    private double wayLatitude = 0.0, wayLongitude = 0.0;
-    private double wayBearing = 0.0;
 
     // Location updates request
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private boolean locationUpdateRequested;
 
-    private TextView mTextView;
+    private TextView orientationText;
+    private TextView distanceText;
     private SensorManager sensorManager;
-
-    private Button startButton;
-    private Button stopButton;
 
     private Sensor orientationSensor;
     private double azimuth;
 
     private ArrayList<Location> pathToFollow;
+    private int indexNextCP = 0;
     private Location actualLocation;
 
     @Override
@@ -88,46 +82,20 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void init() {
         setContentView(R.layout.activity_main);
         initSensors();
-        initTestText();
-        initButtons();
+        initText();
         initLocation();
         initPath();
     }
 
-    private void initButtons() {
-        initStartButton();
-        initStopButton();
-    }
-
-    private void initStartButton() {
-        startButton = findViewById(R.id.startButton);
-        startButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startExp();
-            }
-        });
-    }
-
-    private void initStopButton() {
-        stopButton = findViewById(R.id.stopButton);
-        stopButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopExp();
-            }
-        });
-    }
-
-    private void initTestText() {
-        mTextView = (TextView) findViewById(R.id.text);
+    private void initText() {
+        orientationText = findViewById(R.id.angle);
+        distanceText = findViewById(R.id.distance);
     }
 
     private void initSensors() {
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-        sensorManager.registerListener(this,orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
-
+        sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_FASTEST);
 
 
         Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -154,7 +122,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void initLocationRequest() {
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(3 * 1000); // millis
+        locationRequest.setInterval(1000); // millis
     }
 
     public void initLocationSettings() {
@@ -194,8 +162,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     if (location != null) {
                         actualizeLocationVariables(location);
                         sendActualPosition("Running");
+                        checkDistance();
                     } else {
-                        System.out.println("location in callback is null" );
+                        System.out.println("location in callback is null");
                     }
                 }
             }
@@ -203,7 +172,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void initPath() {
-        pathToFollow = new ArrayList<Location>();
+        pathToFollow = new ArrayList<>();
     }
 
     public void retrieveLastLocation() {
@@ -219,7 +188,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                         if (location != null) {
                             actualizeLocationVariables(location);
                         }
-                        System.out.println("last Location :" + location);
                     }
                 });
         if (fusedLocationProviderClient != null) {
@@ -257,6 +225,57 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     }
 
+    public void checkAngle() {
+        double idealAngle = actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1));
+        if (idealAngle <= 0) {
+            idealAngle += 360;
+        }
+        // compare ideal angle to actual angle
+        double diffAngles = idealAngle - azimuth;
+        double tolerance = 10; // with x degrees error allowed
+        String message = orientationText.getText().toString();
+
+        if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0) {
+            // on the good angle
+            message = "on the correct path";
+        } else if (diffAngles < 0) {
+            // left
+            message = "go to the left";
+        } else {
+            // right
+            message = "go to the right";
+        }
+        if (!orientationText.getText().equals(message)) {
+            Log.d(TAG, message);
+            orientationText.setText(message);
+            vibrate();
+            // or rotate if possible
+        }
+    }
+
+    public void checkDistance() {
+        double tolerance = 2; // error margin allowed
+        if (indexNextCP == 0) {
+            System.out.println("index CP = 0");
+        } else {
+            double mesuredDistance = actualLocation.distanceTo(pathToFollow.get(indexNextCP));
+            DecimalFormat df = new DecimalFormat("#.#");
+            String msg = df.format(mesuredDistance) + " m";
+            distanceText.setText(msg);
+            if (mesuredDistance <= tolerance) {
+                // target reached
+                if (indexNextCP == pathToFollow.size() - 1) {
+                    // last critical point
+                    // notify arrival
+                    // let user decide to end exp
+                } else {
+                    // checkpoint passed, onto the next
+                    indexNextCP++;
+                }
+            }
+        }
+    }
+
     // ~~~~~~~~~~~~~~~~~~~~~~ other functions ~~~~~~~~~~~~~~~~~~~~~~
     public void vibrate() {
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
@@ -268,9 +287,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     public void actualizeLocationVariables(Location loc) {
         this.actualLocation = loc;
-        wayLatitude = loc.getLatitude();
-        wayLongitude = loc.getLongitude();
-        wayBearing = loc.getBearing();
     }
 
     public void startLocationUpdates() {
@@ -288,11 +304,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void startExp() {
         if (!locationUpdateRequested) {
             System.out.println("Starting the experiment");
+            sendActualPosition("Asking");
             startLocationUpdates();
             locationUpdateRequested = true;
             vibrate();
         } else {
-            sendActualPosition("Asking");
             System.out.println("Already locationUpdateRequested");
         }
     }
@@ -302,6 +318,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             System.out.println("stopping the experiment");
             stopLocationUpdates();
             locationUpdateRequested = false;
+            indexNextCP = 0;
             vibrate();
             sendActualPosition("Stop");
             startStartingActivity();
@@ -311,7 +328,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     private void sendActualPosition(String state) {
-        String msg = state + ":" + wayLatitude + "-" + wayLongitude;
+        String msg = state + ":" + actualLocation.getLatitude() + "-" + actualLocation.getLongitude();
         myClientTask = new ClientTask(msg, this);
         myClientTask.execute();
     }
@@ -337,103 +354,38 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             extractRoute(rep);
             // start the feedback
         } else {
-            System.out.println("unexpected reply : " + rep);
+            // System.out.println("unexpected reply : " + rep);
         }
     }
 
     private void extractRoute(String s) {
-        String mainParts[] = s.split(":");
-        String infoParts[] = mainParts[1].split(";");
+        String[] mainParts = s.split(":");
+        String[] infoParts = mainParts[1].split(";");
+        pathToFollow.clear();
+        indexNextCP++;
         for (String info : infoParts) {
-            Location loc = new Location (LocationManager.GPS_PROVIDER);
+            Location loc = new Location(LocationManager.GPS_PROVIDER);
             String latitude = info.split("-")[0];
             String longitude = info.split("-")[1];
             loc.setLatitude(Double.parseDouble(latitude));
             loc.setLongitude(Double.parseDouble(longitude));
             pathToFollow.add(loc);
-            System.out.println("new location produced : " + loc);
         }
 
-        if (actualLocation != null){
-            Log.d(TAG,"bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size()-1)) + ", Azimuth : " + azimuth);
-            getCorrection();
+        if (actualLocation != null) {
+            // Log.d(TAG, "bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1)) + ", Azimuth : " + azimuth);
+            checkAngle();
         }
     }
 
-    public void getCorrection(){
-        double idealAngle = actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1));
-        if (idealAngle <= 0) {
-            idealAngle += 360;
-        }
-        // compare ideal angle to actual angle
-        double diffAngles = idealAngle - azimuth;
-        double tolerance = 10; // with x degrees error allowed
-        String message = mTextView.getText().toString();
-        int index = 0;
-
-        if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0){
-            // on the good angle
-            message = "on the correct path";
-        }
-        else if (diffAngles < 0) {
-            // left
-           message = "go to the left";
-        } else {
-            // right
-            message = "go to the right";
-        }
-        if (!mTextView.getText().equals(message)){
-            Log.d(TAG,message);
-            mTextView.setText(message);
-            vibrate();
-            // changer image si necessaire
-            changeImage(index);
-            // or rotate if possible
-
-        }
-    }
-
-    public void changeImage(int index){
-        // changes the image according to index given
-        switch (index){
-            case 0:
-                // straight
-                break;
-            case 1:
-                // right
-                break;
-            case 2:
-                // soft Right
-                break;
-            case 3:
-                // soft left
-                break;
-            case 4:
-                // left
-                break;
-            default:
-                // U turn
-        }
-    }
-
-    public boolean handleWristGestureIN(){
-        if (locationUpdateRequested){
-            sendActualPosition("Asking");
-        }
+    public boolean handleWristGestureIN() {
+        stopExp();
         return true;
     }
 
-    public boolean handleWristGestureOUT(){
-        Log.d(TAG,"handling wrist OUT gesture");
-        boolean handled = false;
-        if (!locationUpdateRequested){
-            startExp();
-            handled = true;
-        } else {
-            stopExp();
-            handled = true;
-        }
-        return handled;
+    public boolean handleWristGestureOUT() {
+        startExp();
+        return true;
     }
 
     @Override
@@ -445,17 +397,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
             azimuth = event.values[0];
-        } else {
-            // mTextView.setText("location changed : " + wayLatitude + ", " + wayLongitude);
-            if (pathToFollow.size() > 1){
-                getCorrection();
+            if (pathToFollow.size() > 1) {
+                checkAngle();
             }
         }
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.d(TAG, "key down");
         switch (keyCode) {
             case KeyEvent.KEYCODE_NAVIGATE_NEXT:
                 // flick wrist out

@@ -64,10 +64,7 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
             e.printStackTrace();
             response = "IOException: " + e.toString();
             activity.errorMessage("Sorry, could not connect, try again");
-        } catch (Exception e){
-            System.out.println("zeub");
         }
-
         finally {
             if (socket != null) {
                 try {
