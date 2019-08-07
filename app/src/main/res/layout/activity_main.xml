@@ -13,28 +13,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="@dimen/inner_frame_layout_padding"
-        app:boxedEdges="all">
+        app:boxedEdges="all"
+        android:gravity="center">
 
         <TextView
-            android:id="@+id/text"
+            android:id="@+id/angle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/hello_world"
+            android:text="degrees"
+            android:textSize="20sp"
+            android:layout_centerInParent="true"
             />
 
-        <Button
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/startButton"
-            android:text="Start Exp"
-            android:layout_below="@+id/text"/>
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/stopButton"
-            android:text="Stop Exp"
-            android:layout_below="@+id/startButton"/>
-
+            android:layout_below="@id/angle"
+            android:id="@+id/distance"
+            android:text="meters"
+            android:textSize="30sp"
+            android:layout_centerInParent="true"
+            />
     </RelativeLayout>
 </androidx.wear.widget.BoxInsetLayout>
