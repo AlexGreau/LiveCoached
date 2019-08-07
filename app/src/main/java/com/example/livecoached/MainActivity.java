@@ -234,18 +234,28 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
         // compare ideal angle to actual angle
         double diffAngles = idealAngle - azimuth;
+        Log.d(TAG,"angle ideal : " + idealAngle + "; azimuth :"  + azimuth + "; difference : " + diffAngles);
         double tolerance = 10; // with x degrees error allowed
         String message;
 
+        if (diffAngles < -180){
+
+        }
         if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0) {
             // on the good angle
             message = "go straight";
         } else if (diffAngles < 0) {
             // left
             message = "go to the left";
-        } else if (diffAngles > 0) {
+            if (diffAngles < -180){
+                message = "go to the right";
+            }
+        } else if (diffAngles > 0 ) {
             // right
             message = "go to the right";
+            if (diffAngles < -180){
+                message = "go to the left";
+            }
         } else {
             message = " U-Turn !!";
         }
