@@ -20,7 +20,7 @@
             android:id="@+id/arrow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/one_way"
+            android:src="@drawable/compass"
             android:layout_alignParentTop="true"
             android:layout_centerInParent="true"
             android:visibility="gone"/>
