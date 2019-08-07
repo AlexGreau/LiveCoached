@@ -368,7 +368,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         // compare ideal angle to actual angle
         double diffAngles = idealAngle - azimuth;
         double tolerance = 10; // with x degrees error allowed
-        String message = "please move to a direction";
+        String message = mTextView.getText().toString();
         int index = 0;
 
         if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0){
@@ -382,12 +382,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             // right
             message = "go to the right";
         }
-        Log.d(TAG,message);
         if (!mTextView.getText().equals(message)){
+            Log.d(TAG,message);
             mTextView.setText(message);
+            vibrate();
             // changer image si necessaire
             changeImage(index);
             // or rotate if possible
+
         }
     }
 
