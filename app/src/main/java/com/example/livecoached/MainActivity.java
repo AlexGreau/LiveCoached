@@ -88,8 +88,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     private void initText() {
-        orientationText = (TextView) findViewById(R.id.angle);
-        distanceText = (TextView) findViewById(R.id.distance);
+        orientationText = findViewById(R.id.angle);
+        distanceText = findViewById(R.id.distance);
     }
 
     private void initSensors() {
@@ -172,7 +172,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void initPath() {
-        pathToFollow = new ArrayList<Location>();
+        pathToFollow = new ArrayList<>();
     }
 
     public void retrieveLastLocation() {
@@ -225,7 +225,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     }
 
-    public void checkAngle(){
+    public void checkAngle() {
         double idealAngle = actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1));
         if (idealAngle <= 0) {
             idealAngle += 360;
@@ -253,25 +253,24 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     }
 
-    public void checkDistance(){
+    public void checkDistance() {
         double tolerance = 2; // error margin allowed
-        if (indexNextCP == 0){
+        if (indexNextCP == 0) {
             System.out.println("index CP = 0");
-            return;
         } else {
             double mesuredDistance = actualLocation.distanceTo(pathToFollow.get(indexNextCP));
-            DecimalFormat df = new DecimalFormat("#.##");
-            distanceText.setText(df.format(mesuredDistance)+ " m");
-            if (mesuredDistance <= tolerance){
+            DecimalFormat df = new DecimalFormat("#.#");
+            String msg = df.format(mesuredDistance) + " m";
+            distanceText.setText(msg);
+            if (mesuredDistance <= tolerance) {
                 // target reached
-                if (indexNextCP == pathToFollow.size()-1){
+                if (indexNextCP == pathToFollow.size() - 1) {
                     // last critical point
                     // notify arrival
                     // let user decide to end exp
-                    return;
-                }else {
+                } else {
                     // checkpoint passed, onto the next
-                    indexNextCP ++;
+                    indexNextCP++;
                 }
             }
         }
@@ -360,8 +359,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     private void extractRoute(String s) {
-        String mainParts[] = s.split(":");
-        String infoParts[] = mainParts[1].split(";");
+        String[] mainParts = s.split(":");
+        String[] infoParts = mainParts[1].split(";");
         pathToFollow.clear();
         indexNextCP++;
         for (String info : infoParts) {
@@ -374,29 +373,19 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
 
         if (actualLocation != null) {
-           // Log.d(TAG, "bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1)) + ", Azimuth : " + azimuth);
+            // Log.d(TAG, "bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1)) + ", Azimuth : " + azimuth);
             checkAngle();
         }
     }
 
     public boolean handleWristGestureIN() {
-        System.out.println("handling in gesture");
-        if (locationUpdateRequested) {
-            sendActualPosition("Asking");
-        }
+        stopExp();
         return true;
     }
 
     public boolean handleWristGestureOUT() {
-        boolean handled = false;
-        if (!locationUpdateRequested) {
-            startExp();
-            handled = true;
-        } else {
-            stopExp();
-            handled = true;
-        }
-        return handled;
+        startExp();
+        return true;
     }
 
     @Override
@@ -411,9 +400,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             if (pathToFollow.size() > 1) {
                 checkAngle();
             }
-        } else {
-            // orientationText.setText("location changed : " + wayLatitude + ", " + wayLongitude);
-
         }
     }
 
