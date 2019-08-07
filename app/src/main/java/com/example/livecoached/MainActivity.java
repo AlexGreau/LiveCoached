@@ -122,7 +122,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void initLocationRequest() {
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(3 * 1000); // millis
+        locationRequest.setInterval(1000); // millis
     }
 
     public void initLocationSettings() {
@@ -188,7 +188,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                         if (location != null) {
                             actualizeLocationVariables(location);
                         }
-                        System.out.println("last Location :" + location);
                     }
                 });
         if (fusedLocationProviderClient != null) {
@@ -268,7 +267,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 if (indexNextCP == pathToFollow.size()-1){
                     // last critical point
                     // notify arrival
-
                     // let user decide to end exp
                     return;
                 }else {
@@ -289,6 +287,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void actualizeLocationVariables(Location loc) {
+        System.out.println("new location mesured");
         this.actualLocation = loc;
     }
 
@@ -332,7 +331,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void sendActualPosition(String state) {
         String msg = state + ":" + actualLocation.getLatitude() + "-" + actualLocation.getLongitude();
-        //TODO too many client tasks over the time
         myClientTask = new ClientTask(msg, this);
         myClientTask.execute();
     }
@@ -358,7 +356,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             extractRoute(rep);
             // start the feedback
         } else {
-            System.out.println("unexpected reply : " + rep);
+            // System.out.println("unexpected reply : " + rep);
         }
     }
 
@@ -374,16 +372,16 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             loc.setLatitude(Double.parseDouble(latitude));
             loc.setLongitude(Double.parseDouble(longitude));
             pathToFollow.add(loc);
-            System.out.println("new location produced : " + loc);
         }
 
         if (actualLocation != null) {
-            Log.d(TAG, "bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1)) + ", Azimuth : " + azimuth);
+           // Log.d(TAG, "bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1)) + ", Azimuth : " + azimuth);
             checkAngle();
         }
     }
 
     public boolean handleWristGestureIN() {
+        System.out.println("handling in gesture");
         if (locationUpdateRequested) {
             sendActualPosition("Asking");
         }
@@ -391,7 +389,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public boolean handleWristGestureOUT() {
-        Log.d(TAG, "handling wrist OUT gesture");
         boolean handled = false;
         if (!locationUpdateRequested) {
             startExp();
@@ -423,7 +420,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.d(TAG, "key down");
         switch (keyCode) {
             case KeyEvent.KEYCODE_NAVIGATE_NEXT:
                 // flick wrist out
