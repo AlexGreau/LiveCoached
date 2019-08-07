@@ -287,7 +287,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void actualizeLocationVariables(Location loc) {
-        System.out.println("new location mesured");
         this.actualLocation = loc;
     }
 
@@ -306,11 +305,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void startExp() {
         if (!locationUpdateRequested) {
             System.out.println("Starting the experiment");
+            sendActualPosition("Asking");
             startLocationUpdates();
             locationUpdateRequested = true;
             vibrate();
         } else {
-            sendActualPosition("Asking");
             System.out.println("Already locationUpdateRequested");
         }
     }
