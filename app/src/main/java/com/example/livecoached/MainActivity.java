@@ -16,6 +16,7 @@ import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -230,6 +231,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         if (idealAngle <= 0) {
             idealAngle += 360;
         }
+        findViewById(R.id.arrow).setVisibility(View.VISIBLE);
         // compare ideal angle to actual angle
         double diffAngles = idealAngle - azimuth;
         double tolerance = 10; // with x degrees error allowed
