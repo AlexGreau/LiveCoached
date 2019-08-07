@@ -17,6 +17,7 @@ import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -231,27 +232,34 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         if (idealAngle <= 0) {
             idealAngle += 360;
         }
-        findViewById(R.id.arrow).setVisibility(View.VISIBLE);
         // compare ideal angle to actual angle
         double diffAngles = idealAngle - azimuth;
         double tolerance = 10; // with x degrees error allowed
-        String message = orientationText.getText().toString();
+        String message;
 
         if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0) {
             // on the good angle
-            message = "on the correct path";
+            message = "go straight";
         } else if (diffAngles < 0) {
             // left
             message = "go to the left";
-        } else {
+        } else if (diffAngles > 0){
             // right
             message = "go to the right";
+        } else {
+            message = " U-Turn !!";
         }
+        // image
+        ImageView arrow = findViewById(R.id.arrow);
+        arrow.setVisibility(View.VISIBLE);
+        Float angle = (float) diffAngles;
+        arrow.setRotation(angle);
+
+        // text
         if (!orientationText.getText().equals(message)) {
             Log.d(TAG, message);
             orientationText.setText(message);
             vibrate();
-            // or rotate if possible
         }
     }
 
