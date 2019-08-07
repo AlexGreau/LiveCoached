@@ -314,8 +314,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void startExp() {
         if (!locationUpdateRequested) {
             System.out.println("Starting the experiment");
-            sendActualPosition("Asking");
             startLocationUpdates();
+            sendActualPosition("Asking");
             locationUpdateRequested = true;
             vibrate();
         } else {
