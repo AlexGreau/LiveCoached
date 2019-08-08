@@ -92,7 +92,7 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     @Override
     public void errorMessage(String err) {
-        Toast.makeText(getApplicationContext(), err, Toast.LENGTH_LONG).show();
+        System.out.print(err);
     }
 
     public void retrieveLastLocation() {
