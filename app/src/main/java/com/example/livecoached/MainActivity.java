@@ -235,7 +235,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         // compare ideal angle to actual angle
         double diffAngles = idealAngle - azimuth;
         Log.d(TAG,"angle ideal : " + idealAngle + "; azimuth :"  + azimuth + "; difference : " + diffAngles);
-        double tolerance = 10; // with x degrees error allowed
+        double tolerance = 30; // with x degrees error allowed
         String message;
 
         if (diffAngles < -180){
@@ -284,6 +284,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             distanceText.setText(msg);
             if (mesuredDistance <= tolerance) {
                 // target reached
+                vibrate();
+                orientationText.setText("reached a CP");
                 if (indexNextCP == pathToFollow.size() - 1) {
                     // last critical point
                     // notify arrival
@@ -399,11 +401,15 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public boolean handleWristGestureIN() {
+        String message = "Gesture recognized, please wait";
+        orientationText.setText(message);
         stopExp();
         return true;
     }
 
     public boolean handleWristGestureOUT() {
+        String message = "Gesture recognized, please wait";
+        orientationText.setText(message);
         startExp();
         return true;
     }

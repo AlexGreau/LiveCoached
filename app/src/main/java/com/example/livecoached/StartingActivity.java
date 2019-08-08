@@ -10,7 +10,6 @@ import android.support.wearable.activity.WearableActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
@@ -39,6 +38,7 @@ public class StartingActivity extends WearableActivity implements Decoder {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_starting);
         init();
+        System.out.println("Starting activity ready");
     }
 
     private void init() {
