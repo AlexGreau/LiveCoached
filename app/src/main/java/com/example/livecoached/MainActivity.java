@@ -12,6 +12,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
@@ -70,6 +71,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private ArrayList<Location> pathToFollow;
     private int indexNextCP = 0;
     private Location actualLocation;
+
+    private long[] pattern;
+    private int[] amplitudes;
+    private final int indexInPatternToRepeat = -1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -234,26 +240,29 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
         // compare ideal angle to actual angle
         double diffAngles = idealAngle - azimuth;
-        Log.d(TAG,"angle ideal : " + idealAngle + "; azimuth :"  + azimuth + "; difference : " + diffAngles);
+        Log.d(TAG, "angle ideal : " + idealAngle + "; azimuth :" + azimuth + "; difference : " + diffAngles);
         double tolerance = 30; // with x degrees error allowed
         String message;
+        int patternIndex = 100; // triggers default case
 
-        if (diffAngles < -180){
-
-        }
         if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0) {
             // on the good angle
             message = "go straight";
+            patternIndex = 3;
         } else if (diffAngles < 0) {
             // left
             message = "go to the left";
-            if (diffAngles < -180){
+            patternIndex = -1;
+            if (diffAngles < -180) {
                 message = "go to the right";
+                patternIndex = 1;
             }
-        } else if (diffAngles > 0 ) {
+        } else if (diffAngles > 0) {
             // right
             message = "go to the right";
-            if (diffAngles < -180){
+            patternIndex = 1;
+            if (diffAngles < -180) {
+                patternIndex = -1;
                 message = "go to the left";
             }
         } else {
@@ -269,7 +278,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         if (!orientationText.getText().equals(message)) {
             Log.d(TAG, message);
             orientationText.setText(message);
-            vibrate();
+            vibrate(patternIndex);
         }
     }
 
@@ -284,7 +293,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             distanceText.setText(msg);
             if (mesuredDistance <= tolerance) {
                 // target reached
-                vibrate();
+                vibrate(0);
                 orientationText.setText("reached a CP");
                 if (indexNextCP == pathToFollow.size() - 1) {
                     // last critical point
@@ -299,12 +308,57 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~ other functions ~~~~~~~~~~~~~~~~~~~~~~
-    public void vibrate() {
+    public void vibrate(int pat) {
+        // TODO : flag to avoid interruptions
+        setVibroValues(pat);
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-        long[] vibrationPattern = {0, 500, 50, 300};
-        //-1 - don't repeat
-        final int indexInPatternToRepeat = -1;
-        vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
+        vibrator.vibrate(VibrationEffect.createWaveform(pattern, amplitudes, indexInPatternToRepeat));
+    }
+
+    private void setVibroValues(int style) {
+        long shortSig = 200;
+        long longSig = 400;
+        int weakAmpli = 70;
+        int midAmpli = 150;
+        int highAmpli = 250;
+        switch (style) {
+            case 0:
+                // CP
+                pattern = new long[]{shortSig, longSig, shortSig};
+                amplitudes = new int[]{weakAmpli, midAmpli, highAmpli};
+                break;
+            case -1:
+                // left
+                pattern = new long[]{shortSig, shortSig, longSig};
+                amplitudes = new int[]{midAmpli, highAmpli, highAmpli};
+                break;
+            case 1:
+                // right
+                pattern = new long[]{shortSig, longSig, shortSig};
+                amplitudes = new int[]{midAmpli, highAmpli, highAmpli};
+                break;
+            case 2:
+                // end
+                pattern = new long[]{shortSig, longSig, shortSig, longSig, shortSig};
+                amplitudes = new int[]{midAmpli, midAmpli, midAmpli, midAmpli, midAmpli};
+                break;
+            case 3:
+                // straight
+                pattern = new long[]{longSig};
+                amplitudes = new int[]{midAmpli};
+                break;
+            case 10:
+                // test
+                pattern = new long[]{shortSig, shortSig, shortSig, longSig, longSig, longSig};
+                amplitudes = new int[]{weakAmpli, midAmpli, highAmpli, weakAmpli, midAmpli, highAmpli};
+                break;
+            default:
+                //standard
+                pattern = new long[]{shortSig};
+                amplitudes = new int[]{midAmpli};
+                return;
+        }
+        return;
     }
 
     public void actualizeLocationVariables(Location loc) {
@@ -329,7 +383,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             startLocationUpdates();
             sendActualPosition("Asking");
             locationUpdateRequested = true;
-            vibrate();
+            vibrate(0);
         } else {
             System.out.println("Already locationUpdateRequested");
         }
@@ -341,7 +395,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             stopLocationUpdates();
             locationUpdateRequested = false;
             indexNextCP = 0;
-            vibrate();
+            vibrate(2);
             sendActualPosition("Stop");
             startStartingActivity();
         } else {
