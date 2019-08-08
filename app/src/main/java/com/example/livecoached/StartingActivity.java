@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,7 +25,6 @@ public class StartingActivity extends WearableActivity implements Decoder {
     // UI components
     private TextView text;
     private Button firstOption;
-    private ImageButton secondOption;
 
     // Client
     private ClientTask client;
@@ -61,14 +59,10 @@ public class StartingActivity extends WearableActivity implements Decoder {
         firstOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                proceed();
+                retrieveLastLocation();
+                sendToServer();
             }
         });
-    }
-
-    private void proceed() {
-        retrieveLastLocation();
-        sendToServer();
     }
 
     private void initLocation() {
@@ -79,12 +73,6 @@ public class StartingActivity extends WearableActivity implements Decoder {
     private void sendToServer() {
         client = new ClientTask("Ready:" + wayLatitude + "-" + wayLongitude, this);
         client.execute();
-    }
-
-    private void startTransitionActivity() {
-        Intent intent = new Intent(StartingActivity.this, TransitionActivity.class);
-        intent.putExtra("state", 1);
-        startActivity(intent);
     }
 
     private void startMainActivity() {
@@ -104,7 +92,7 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     @Override
     public void errorMessage(String err) {
-        Toast.makeText(getApplicationContext(), err, Toast.LENGTH_LONG).show();
+        System.out.print(err);
     }
 
     public void retrieveLastLocation() {

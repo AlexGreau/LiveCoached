@@ -12,6 +12,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center"
         android:padding="@dimen/inner_frame_layout_padding"
         app:boxedEdges="all">
 
@@ -20,14 +21,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="15dp"
-            android:gravity="center" />
+            android:textSize="22sp" />
 
         <Button
             android:id="@+id/firstOptionButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/welcomeText"
-            />
+            android:textSize="25sp" />
 
     </RelativeLayout>
 </androidx.wear.widget.BoxInsetLayout>
