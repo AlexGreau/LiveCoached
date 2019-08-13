@@ -312,35 +312,37 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         // TODO : flag to avoid interruptions
         setVibroValues(pat);
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        System.out.println("has amplitude control : " + vibrator.hasAmplitudeControl());
         vibrator.vibrate(VibrationEffect.createWaveform(pattern, amplitudes, indexInPatternToRepeat));
     }
 
     private void setVibroValues(int style) {
         long shortSig = 200;
         long longSig = 400;
+        long delay = 200;
         int weakAmpli = 70;
         int midAmpli = 150;
         int highAmpli = 250;
         switch (style) {
             case 0:
                 // CP
-                pattern = new long[]{shortSig, longSig, shortSig};
-                amplitudes = new int[]{weakAmpli, midAmpli, highAmpli};
+                pattern = new long[]{shortSig, delay, longSig, delay, shortSig};
+                amplitudes = new int[]{weakAmpli, 0, midAmpli, 0, highAmpli};
                 break;
             case -1:
                 // left
-                pattern = new long[]{shortSig, shortSig, longSig};
-                amplitudes = new int[]{midAmpli, highAmpli, highAmpli};
+                pattern = new long[]{shortSig, delay, shortSig, delay, longSig};
+                amplitudes = new int[]{midAmpli, 0, highAmpli, 0, highAmpli};
                 break;
             case 1:
                 // right
-                pattern = new long[]{shortSig, longSig, shortSig};
-                amplitudes = new int[]{midAmpli, highAmpli, highAmpli};
+                pattern = new long[]{shortSig, delay, longSig, delay, shortSig};
+                amplitudes = new int[]{midAmpli, 0, highAmpli, 0, highAmpli};
                 break;
             case 2:
                 // end
-                pattern = new long[]{shortSig, longSig, shortSig, longSig, shortSig};
-                amplitudes = new int[]{midAmpli, midAmpli, midAmpli, midAmpli, midAmpli};
+                pattern = new long[]{shortSig, delay, longSig, delay, shortSig, delay, longSig, delay, shortSig};
+                amplitudes = new int[]{midAmpli, 0, midAmpli, 0, midAmpli, 0, midAmpli, 0, midAmpli};
                 break;
             case 3:
                 // straight
@@ -349,8 +351,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 break;
             case 10:
                 // test
-                pattern = new long[]{shortSig, shortSig, shortSig, longSig, longSig, longSig};
-                amplitudes = new int[]{weakAmpli, midAmpli, highAmpli, weakAmpli, midAmpli, highAmpli};
+                pattern = new long[]{shortSig, delay, shortSig, delay, shortSig, delay, longSig, delay, longSig, delay, longSig};
+                amplitudes = new int[]{weakAmpli, 0, midAmpli, 0, highAmpli, 0, weakAmpli, 0, midAmpli, 0, highAmpli};
                 break;
             default:
                 //standard
