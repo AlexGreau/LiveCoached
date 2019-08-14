@@ -12,6 +12,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
@@ -70,6 +71,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private ArrayList<Location> pathToFollow;
     private int indexNextCP = 0;
     private Location actualLocation;
+
+    private long[] pattern;
+    private int[] amplitudes;
+    private int indexInPatternToRepeat = 0;
+
+    private boolean flickHandled = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -234,26 +242,28 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
         // compare ideal angle to actual angle
         double diffAngles = idealAngle - azimuth;
-        Log.d(TAG,"angle ideal : " + idealAngle + "; azimuth :"  + azimuth + "; difference : " + diffAngles);
         double tolerance = 30; // with x degrees error allowed
         String message;
+        int patternIndex = 100; // triggers default case
 
-        if (diffAngles < -180){
-
-        }
         if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0) {
             // on the good angle
             message = "go straight";
+            patternIndex = 3;
         } else if (diffAngles < 0) {
             // left
             message = "go to the left";
-            if (diffAngles < -180){
+            patternIndex = -1;
+            if (diffAngles < -180) {
                 message = "go to the right";
+                patternIndex = 1;
             }
-        } else if (diffAngles > 0 ) {
+        } else if (diffAngles > 0) {
             // right
             message = "go to the right";
-            if (diffAngles < -180){
+            patternIndex = 1;
+            if (diffAngles < -180) {
+                patternIndex = -1;
                 message = "go to the left";
             }
         } else {
@@ -267,10 +277,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
         // text
         if (!orientationText.getText().equals(message)) {
-            Log.d(TAG, message);
+            // Log.d(TAG, message);
             orientationText.setText(message);
-            vibrate();
+            vibrate(patternIndex);
         }
+
+        return;
     }
 
     public void checkDistance() {
@@ -284,7 +296,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             distanceText.setText(msg);
             if (mesuredDistance <= tolerance) {
                 // target reached
-                vibrate();
+                vibrate(0);
                 orientationText.setText("reached a CP");
                 if (indexNextCP == pathToFollow.size() - 1) {
                     // last critical point
@@ -299,12 +311,65 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~ other functions ~~~~~~~~~~~~~~~~~~~~~~
-    public void vibrate() {
+    public void vibrate(int pat) {
+        setVibroValues(pat);
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-        long[] vibrationPattern = {0, 500, 50, 300};
-        //-1 - don't repeat
-        final int indexInPatternToRepeat = -1;
-        vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
+        vibrator.vibrate(VibrationEffect.createWaveform(pattern, amplitudes, indexInPatternToRepeat));
+    }
+
+    private void setVibroValues(int style) {
+        long shortSig = 200;
+        long longSig = 450;
+        long delay = 300;
+        long pause = 2000;
+
+        int weakAmpli = 70;
+        int midAmpli = 150;
+        int highAmpli = 250;
+
+        switch (style) {
+            case 0:
+                // CP
+                pattern = new long[]{shortSig, delay / 2, shortSig, delay / 2, shortSig, pause};
+                amplitudes = new int[]{weakAmpli, 0, midAmpli, 0, highAmpli, 0};
+                indexInPatternToRepeat = -1;
+                return;
+            case -1:
+                // left
+                pattern = new long[]{longSig, delay, shortSig, delay, shortSig, pause};
+                amplitudes = new int[]{midAmpli, 0, highAmpli, 0, highAmpli, 0};
+                indexInPatternToRepeat = 0;
+                return;
+            case 1:
+                // right
+                pattern = new long[]{shortSig, delay, shortSig, delay, longSig, pause};
+                amplitudes = new int[]{midAmpli, 0, highAmpli, 0, highAmpli, 0};
+                indexInPatternToRepeat = 0;
+                return;
+            case 2:
+                // end
+                pattern = new long[]{longSig, delay, longSig, delay, longSig, pause};
+                amplitudes = new int[]{midAmpli, 0, midAmpli, 0, midAmpli, 0};
+                indexInPatternToRepeat = -1;
+                return;
+            case 3:
+                // straight
+                pattern = new long[]{longSig, pause};
+                amplitudes = new int[]{midAmpli, 0};
+                indexInPatternToRepeat = 0;
+                return;
+            case 10:
+                // test
+                pattern = new long[]{shortSig, delay, shortSig, delay, shortSig, delay, longSig, delay, longSig, delay, longSig, pause};
+                amplitudes = new int[]{weakAmpli, 0, midAmpli, 0, highAmpli, 0, weakAmpli, 0, midAmpli, 0, highAmpli, 0};
+                return;
+            default:
+                //standard
+                pattern = new long[]{shortSig, pause};
+                amplitudes = new int[]{midAmpli, 0};
+                indexInPatternToRepeat = -1;
+                return;
+        }
     }
 
     public void actualizeLocationVariables(Location loc) {
@@ -329,7 +394,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             startLocationUpdates();
             sendActualPosition("Asking");
             locationUpdateRequested = true;
-            vibrate();
+            vibrate(0);
         } else {
             System.out.println("Already locationUpdateRequested");
         }
@@ -341,7 +406,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             stopLocationUpdates();
             locationUpdateRequested = false;
             indexNextCP = 0;
-            vibrate();
+            vibrate(2);
             sendActualPosition("Stop");
             startStartingActivity();
         } else {
@@ -400,18 +465,26 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     }
 
-    public boolean handleWristGestureIN() {
-        String message = "Gesture recognized, please wait";
-        orientationText.setText(message);
-        stopExp();
-        return true;
+    public void handleWristGestureIN() {
+        if (flickHandled) {
+            String message = "Gesture recognized, please wait";
+            orientationText.setText(message);
+            distanceText.setVisibility(View.GONE);
+            findViewById(R.id.arrow).setVisibility(View.GONE);
+            stopExp();
+            flickHandled = true;
+        }
+        return;
     }
 
-    public boolean handleWristGestureOUT() {
-        String message = "Gesture recognized, please wait";
-        orientationText.setText(message);
-        startExp();
-        return true;
+    public void handleWristGestureOUT() {
+        if (!flickHandled) {
+            String message = "Gesture recognized, please wait";
+            orientationText.setText(message);
+            startExp();
+            flickHandled = true;
+        }
+        return;
     }
 
     @Override
@@ -434,10 +507,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         switch (keyCode) {
             case KeyEvent.KEYCODE_NAVIGATE_NEXT:
                 // flick wrist out
-                return handleWristGestureOUT();
+                handleWristGestureOUT();
+                return true;
             case KeyEvent.KEYCODE_NAVIGATE_PREVIOUS:
                 //flick wrist in
-                return handleWristGestureIN();
+                handleWristGestureIN();
+                return true;
         }
         // If you did not handle it, let it be handled by the next possible element as deemed by the Activity.
         return super.onKeyDown(keyCode, event);
