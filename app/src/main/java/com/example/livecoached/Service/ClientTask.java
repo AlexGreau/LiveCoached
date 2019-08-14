@@ -51,7 +51,7 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
 
             if (msgToServer != null) {
                 dataOutputStream.writeUTF(msgToServer);
-                //System.out.println("sent : " + msgToServer);
+                System.out.println("sent : " + msgToServer);
             }
 
             response = dataInputStream.readUTF();
