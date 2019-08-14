@@ -49,25 +49,26 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private final String TAG = MainActivity.class.getSimpleName();
     private final static int REQUEST_CHECK_SETTINGS = 6;
 
+    // ui components
+    private TextView orientationText;
+    private TextView distanceText;
+
+    // sensors
+    private SensorManager sensorManager;
+    private Sensor orientationSensor;
+    private double azimuth;
+
     // communication
     private ClientTask myClientTask;
 
-    // Fused Location
+    // Location updates
     private FusedLocationProviderClient fusedLocationProviderClient;
     private int locationRequestCode = 1000;
-
-    // Location updates request
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private boolean locationUpdateRequested;
 
-    private TextView orientationText;
-    private TextView distanceText;
-    private SensorManager sensorManager;
-
-    private Sensor orientationSensor;
-    private double azimuth;
-
+    // path
     private ArrayList<Location> pathToFollow;
     private int indexNextCP = 0;
     private Location actualLocation;
@@ -428,18 +429,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public void decodeResponse(String rep) {
-        // System.out.println("Main Activity Decoder " + rep);
         Pattern p = Pattern.compile("route:[[0-9]+\\.[0-9]+\\-[0-9]+\\.[0-9]+;]+");
         Matcher m = p.matcher(rep);
-        // if orders received from server act accordingly
         if (rep.equals("reset")) {
             startStartingActivity();
         } else if (rep.equals("stop")) {
             startStartingActivity();
         } else if (m.matches()) {
-            // change layout
             extractRoute(rep);
-            // start the feedback
         } else {
             // System.out.println("unexpected reply : " + rep);
         }
@@ -460,7 +457,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
 
         if (actualLocation != null) {
-            // Log.d(TAG, "bearing to arrival place : " + actualLocation.bearingTo(pathToFollow.get(pathToFollow.size() - 1)) + ", Azimuth : " + azimuth);
             checkAngle();
         }
     }
@@ -514,7 +510,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 handleWristGestureIN();
                 return true;
         }
-        // If you did not handle it, let it be handled by the next possible element as deemed by the Activity.
         return super.onKeyDown(keyCode, event);
     }
 
