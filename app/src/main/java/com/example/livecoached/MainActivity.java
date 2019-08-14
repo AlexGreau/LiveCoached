@@ -74,7 +74,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private long[] pattern;
     private int[] amplitudes;
-    private final int indexInPatternToRepeat = -1;
+    private final int indexInPatternToRepeat = 0;
 
 
     @Override
@@ -240,7 +240,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
         // compare ideal angle to actual angle
         double diffAngles = idealAngle - azimuth;
-        Log.d(TAG, "angle ideal : " + idealAngle + "; azimuth :" + azimuth + "; difference : " + diffAngles);
         double tolerance = 30; // with x degrees error allowed
         String message;
         int patternIndex = 100; // triggers default case
@@ -280,6 +279,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             orientationText.setText(message);
             vibrate(patternIndex);
         }
+
+        return;
     }
 
     public void checkDistance() {
@@ -312,52 +313,53 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         // TODO : flag to avoid interruptions
         setVibroValues(pat);
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-        System.out.println("has amplitude control : " + vibrator.hasAmplitudeControl());
         vibrator.vibrate(VibrationEffect.createWaveform(pattern, amplitudes, indexInPatternToRepeat));
     }
 
     private void setVibroValues(int style) {
         long shortSig = 200;
-        long longSig = 400;
-        long delay = 200;
+        long longSig = 450;
+        long delay = 300;
+        long pause = 2000;
+
         int weakAmpli = 70;
         int midAmpli = 150;
         int highAmpli = 250;
         switch (style) {
             case 0:
                 // CP
-                pattern = new long[]{shortSig, delay, longSig, delay, shortSig};
-                amplitudes = new int[]{weakAmpli, 0, midAmpli, 0, highAmpli};
+                pattern = new long[]{shortSig, delay, longSig, delay, shortSig, pause};
+                amplitudes = new int[]{weakAmpli, 0, midAmpli, 0, highAmpli, 0};
                 break;
             case -1:
                 // left
-                pattern = new long[]{shortSig, delay, shortSig, delay, longSig};
-                amplitudes = new int[]{midAmpli, 0, highAmpli, 0, highAmpli};
+                pattern = new long[]{shortSig, delay, shortSig, delay, longSig, pause};
+                amplitudes = new int[]{midAmpli, 0, highAmpli, 0, highAmpli, 0};
                 break;
             case 1:
                 // right
-                pattern = new long[]{shortSig, delay, longSig, delay, shortSig};
-                amplitudes = new int[]{midAmpli, 0, highAmpli, 0, highAmpli};
+                pattern = new long[]{shortSig, delay, longSig, delay, shortSig, pause};
+                amplitudes = new int[]{midAmpli, 0, highAmpli, 0, highAmpli, 0};
                 break;
             case 2:
                 // end
-                pattern = new long[]{shortSig, delay, longSig, delay, shortSig, delay, longSig, delay, shortSig};
-                amplitudes = new int[]{midAmpli, 0, midAmpli, 0, midAmpli, 0, midAmpli, 0, midAmpli};
+                pattern = new long[]{shortSig, delay, longSig, delay, shortSig, delay, longSig, delay, shortSig, pause};
+                amplitudes = new int[]{midAmpli, 0, midAmpli, 0, midAmpli, 0, midAmpli, 0, midAmpli, 0};
                 break;
             case 3:
                 // straight
-                pattern = new long[]{longSig};
-                amplitudes = new int[]{midAmpli};
+                pattern = new long[]{longSig, pause};
+                amplitudes = new int[]{midAmpli, 0};
                 break;
             case 10:
                 // test
-                pattern = new long[]{shortSig, delay, shortSig, delay, shortSig, delay, longSig, delay, longSig, delay, longSig};
-                amplitudes = new int[]{weakAmpli, 0, midAmpli, 0, highAmpli, 0, weakAmpli, 0, midAmpli, 0, highAmpli};
+                pattern = new long[]{shortSig, delay, shortSig, delay, shortSig, delay, longSig, delay, longSig, delay, longSig, pause};
+                amplitudes = new int[]{weakAmpli, 0, midAmpli, 0, highAmpli, 0, weakAmpli, 0, midAmpli, 0, highAmpli, 0};
                 break;
             default:
                 //standard
-                pattern = new long[]{shortSig};
-                amplitudes = new int[]{midAmpli};
+                pattern = new long[]{shortSig, pause};
+                amplitudes = new int[]{midAmpli, 0};
                 return;
         }
         return;
