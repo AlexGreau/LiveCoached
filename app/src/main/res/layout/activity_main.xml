@@ -38,8 +38,8 @@
             android:id="@+id/distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/angle"
             android:layout_centerInParent="true"
-            android:textSize="50sp" />
+            android:layout_below="@id/angle"
+            android:textSize="30sp" />
     </RelativeLayout>
 </androidx.wear.widget.BoxInsetLayout>

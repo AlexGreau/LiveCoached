@@ -391,6 +391,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void startExp() {
         if (!locationUpdateRequested) {
+            orientationText.setVisibility(View.GONE);
             System.out.println("Starting the experiment");
             startLocationUpdates();
             sendActualPosition("Asking");
@@ -455,14 +456,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             loc.setLongitude(Double.parseDouble(longitude));
             pathToFollow.add(loc);
         }
-
-        if (actualLocation != null) {
-            checkAngle();
-        }
     }
 
     public void handleWristGestureIN() {
         if (flickHandled) {
+            orientationText.setVisibility(View.VISIBLE);
             String message = "Gesture recognized, please wait";
             orientationText.setText(message);
             distanceText.setVisibility(View.GONE);
@@ -475,6 +473,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     public void handleWristGestureOUT() {
         if (!flickHandled) {
+            orientationText.setVisibility(View.VISIBLE);
             String message = "Gesture recognized, please wait";
             orientationText.setText(message);
             startExp();
@@ -492,7 +491,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
             azimuth = event.values[0];
-            if (pathToFollow.size() > 1) {
+            if (pathToFollow.size() > 1 && locationUpdateRequested) {
                 checkAngle();
             }
         }
