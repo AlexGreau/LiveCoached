@@ -73,6 +73,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private int indexNextCP = 0;
     private Location actualLocation;
 
+    // feedback
+    private Vibrator vibrator;
+
     private long[] pattern;
     private int[] amplitudes;
     private int indexInPatternToRepeat = 0;
@@ -119,6 +122,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             sensorManager.registerListener(this, magneticField,
                     SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
         }
+
+        vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
     }
 
     public void initLocation() {
@@ -314,7 +319,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // ~~~~~~~~~~~~~~~~~~~~~~ other functions ~~~~~~~~~~~~~~~~~~~~~~
     public void vibrate(int pat) {
         setVibroValues(pat);
-        Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         vibrator.vibrate(VibrationEffect.createWaveform(pattern, amplitudes, indexInPatternToRepeat));
     }
 
@@ -409,6 +413,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             locationUpdateRequested = false;
             indexNextCP = 0;
             vibrate(2);
+            vibrator.cancel();
             sendActualPosition("Stop");
             startStartingActivity();
         } else {
