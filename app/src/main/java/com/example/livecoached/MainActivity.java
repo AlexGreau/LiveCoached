@@ -15,7 +15,6 @@ import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -52,6 +51,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // ui components
     private TextView orientationText;
     private TextView distanceText;
+    private TextView explanation;
+    private ImageView arrow;
 
     // sensors
     private SensorManager sensorManager;
@@ -75,6 +76,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     // feedback
     private Vibrator vibrator;
+    private int interactionType;
 
     private long[] pattern;
     private int[] amplitudes;
@@ -95,15 +97,33 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // ~~~~~~~~~~~~~~~~~~~~~~ init functions ~~~~~~~~~~~~~~~~~~~~~~
     public void init() {
         setContentView(R.layout.activity_main);
+        interactionType = getIntent().getIntExtra("interactionType",0);
         initSensors();
-        initText();
+        initUI();
         initLocation();
         initPath();
     }
 
-    private void initText() {
+    private void initUI() {
         orientationText = findViewById(R.id.angle);
         distanceText = findViewById(R.id.distance);
+        explanation = findViewById(R.id.hapticExplanation);
+        arrow = findViewById(R.id.arrow);
+
+        if (interactionType == 1){
+            orientationText.setVisibility(View.GONE);
+            distanceText.setVisibility(View.GONE);
+            arrow.setVisibility(View.GONE);
+            initHapticExplanationText();
+        } else {
+            explanation.setVisibility(View.GONE);
+        }
+    }
+
+    private void initHapticExplanationText(){
+        explanation.setVisibility(View.VISIBLE);
+        String explanationText = " - : Straight \n - . . : Left \n . . - : Right \n ... : Checkpoint Reached \n - - - : Finish line";
+        explanation.setText(explanationText);
     }
 
     private void initSensors() {
@@ -276,18 +296,18 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             message = " U-Turn !!";
         }
         // image
-        ImageView arrow = findViewById(R.id.arrow);
-        arrow.setVisibility(View.VISIBLE);
-        Float angle = (float) diffAngles;
-        arrow.setRotation(angle);
+        if (interactionType != 1){
+            arrow.setVisibility(View.VISIBLE);
+            Float angle = (float) diffAngles;
+            arrow.setRotation(angle);
 
-        // text
-        if (!orientationText.getText().equals(message)) {
-            // Log.d(TAG, message);
-            orientationText.setText(message);
-            vibrate(patternIndex);
+            // text
+            if (!orientationText.getText().equals(message)) {
+                // Log.d(TAG, message);
+                orientationText.setText(message);
+                vibrate(patternIndex);
+            }
         }
-
         return;
     }
 
@@ -335,7 +355,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         switch (style) {
             case 0:
                 // CP
-                pattern = new long[]{shortSig, delay / 2, shortSig, delay / 2, shortSig, pause};
+                pattern = new long[]{shortSig, 2*delay/3 , shortSig, 2*delay/3, shortSig, pause};
                 amplitudes = new int[]{weakAmpli, 0, midAmpli, 0, highAmpli, 0};
                 indexInPatternToRepeat = -1;
                 return;
@@ -437,7 +457,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void decodeResponse(String rep) {
         Pattern patternRoute = Pattern.compile("route:[[0-9]+\\.[0-9]+\\-[0-9]+\\.[0-9]+;]+");
         Matcher matcherRoute = patternRoute.matcher(rep);
-
         if (rep.equals("reset")) {
             startStartingActivity();
         } else if (rep.equals("stop")) {

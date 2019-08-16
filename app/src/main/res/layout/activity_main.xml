@@ -42,4 +42,11 @@
             android:layout_below="@id/angle"
             android:textSize="30sp" />
     </RelativeLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/hapticExplanation"
+        android:visibility="gone"
+        android:textSize="30sp"/>
 </androidx.wear.widget.BoxInsetLayout>
