@@ -150,6 +150,6 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     public void retrieveInteractionType(String message){
         String [] msg = message.split(":");
-        interactionType = Integer.getInteger(msg[1]);
+        interactionType = Integer.parseInt(msg[1]);
     }
 }
