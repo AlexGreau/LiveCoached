@@ -308,6 +308,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 vibrate(patternIndex);
             }
         }
+
         return;
     }
 
@@ -443,6 +444,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void sendActualPosition(String state) {
         String msg = state + ":" + actualLocation.getLatitude() + "-" + actualLocation.getLongitude();
+        if (state.equals("Running")){
+            msg = msg + ":" + indexNextCP;
+        }
         myClientTask = new ClientTask(msg, this);
         myClientTask.execute();
     }
