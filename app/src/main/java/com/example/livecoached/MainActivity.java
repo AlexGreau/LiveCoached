@@ -435,13 +435,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     @Override
     public void decodeResponse(String rep) {
-        Pattern p = Pattern.compile("route:[[0-9]+\\.[0-9]+\\-[0-9]+\\.[0-9]+;]+");
-        Matcher m = p.matcher(rep);
+        Pattern patternRoute = Pattern.compile("route:[[0-9]+\\.[0-9]+\\-[0-9]+\\.[0-9]+;]+");
+        Matcher matcherRoute = patternRoute.matcher(rep);
+
         if (rep.equals("reset")) {
             startStartingActivity();
         } else if (rep.equals("stop")) {
             startStartingActivity();
-        } else if (m.matches()) {
+        } else if (matcherRoute.matches()) {
             extractRoute(rep);
         } else {
             // System.out.println("unexpected reply : " + rep);

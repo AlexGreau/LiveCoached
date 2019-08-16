@@ -19,6 +19,9 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class StartingActivity extends WearableActivity implements Decoder {
 
     // UI components
@@ -32,6 +35,9 @@ public class StartingActivity extends WearableActivity implements Decoder {
     private FusedLocationProviderClient fusedLocationProviderClient;
     private int locationRequestCode = 1000;
     private double wayLatitude = 0.0, wayLongitude = 0.0;
+
+    // interaction
+    private int interactionType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,12 +83,16 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     private void startMainActivity() {
         Intent intent = new Intent(StartingActivity.this, MainActivity.class);
+        intent.putExtra("interactionType", interactionType);
         startActivity(intent);
     }
 
     @Override
     public void decodeResponse(String rep) {
-        if (rep.equals("Continue")) {
+        Pattern patternContinue = Pattern.compile("continue:[0-9]{1}");
+        Matcher matcherContinue = patternContinue.matcher(rep);
+        if (matcherContinue.matches()) {
+            retrieveInteractionType(rep);
             startMainActivity();
             finish();
         } else {
@@ -136,5 +146,10 @@ public class StartingActivity extends WearableActivity implements Decoder {
                 }
             });
         }
+    }
+
+    public void retrieveInteractionType(String message){
+        String [] msg = message.split(":");
+        interactionType = Integer.getInteger(msg[1]);
     }
 }
