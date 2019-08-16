@@ -97,7 +97,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // ~~~~~~~~~~~~~~~~~~~~~~ init functions ~~~~~~~~~~~~~~~~~~~~~~
     public void init() {
         setContentView(R.layout.activity_main);
-        interactionType = getIntent().getIntExtra("interactionType",0);
+        interactionType = getIntent().getIntExtra("interactionType", 0);
         initSensors();
         initUI();
         initLocation();
@@ -109,18 +109,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         distanceText = findViewById(R.id.distance);
         explanation = findViewById(R.id.hapticExplanation);
         arrow = findViewById(R.id.arrow);
-
-        if (interactionType == 1){
-            orientationText.setVisibility(View.GONE);
-            distanceText.setVisibility(View.GONE);
-            arrow.setVisibility(View.GONE);
-            initHapticExplanationText();
-        } else {
-            explanation.setVisibility(View.GONE);
-        }
     }
 
-    private void initHapticExplanationText(){
+    private void initHapticExplanationText() {
         explanation.setVisibility(View.VISIBLE);
         String explanationText = " - : Straight \n - . . : Left \n . . - : Right \n ... : Checkpoint Reached \n - - - : Finish line";
         explanation.setText(explanationText);
@@ -296,7 +287,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             message = " U-Turn !!";
         }
         // image
-        if (interactionType != 1){
+        if (interactionType != 1) {
             arrow.setVisibility(View.VISIBLE);
             Float angle = (float) diffAngles;
             arrow.setRotation(angle);
@@ -356,7 +347,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         switch (style) {
             case 0:
                 // CP
-                pattern = new long[]{shortSig, 2*delay/3 , shortSig, 2*delay/3, shortSig, pause};
+                pattern = new long[]{shortSig, 2 * delay / 3, shortSig, 2 * delay / 3, shortSig, pause};
                 amplitudes = new int[]{weakAmpli, 0, midAmpli, 0, highAmpli, 0};
                 indexInPatternToRepeat = -1;
                 return;
@@ -422,6 +413,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             sendActualPosition("Asking");
             locationUpdateRequested = true;
             vibrate(0);
+            loadCorrectUI();
         } else {
             System.out.println("Already locationUpdateRequested");
         }
@@ -444,7 +436,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void sendActualPosition(String state) {
         String msg = state + ":" + actualLocation.getLatitude() + "-" + actualLocation.getLongitude();
-        if (state.equals("Running")){
+        if (state.equals("Running")) {
             msg = msg + ":" + indexNextCP;
         }
         myClientTask = new ClientTask(msg, this);
@@ -470,6 +462,21 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         } else {
             // System.out.println("unexpected reply : " + rep);
         }
+    }
+
+    private void loadCorrectUI() {
+        if (interactionType == 1) {
+            switchToHapticUI();
+        } else {
+            explanation.setVisibility(View.GONE);
+        }
+    }
+
+    private void switchToHapticUI() {
+        orientationText.setVisibility(View.GONE);
+        distanceText.setVisibility(View.GONE);
+        arrow.setVisibility(View.GONE);
+        initHapticExplanationText();
     }
 
     private void extractRoute(String s) {
