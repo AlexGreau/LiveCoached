@@ -43,6 +43,8 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static android.util.TypedValue.COMPLEX_UNIT_SP;
+
 public class MainActivity extends WearableActivity implements SensorEventListener, Decoder {
 
     private final String TAG = MainActivity.class.getSimpleName();
@@ -51,7 +53,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // ui components
     private TextView orientationText;
     private TextView distanceText;
-    private TextView explanation;
+    private TextView hapticExplanation;
     private ImageView arrow;
 
     // sensors
@@ -107,14 +109,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void initUI() {
         orientationText = findViewById(R.id.angle);
         distanceText = findViewById(R.id.distance);
-        explanation = findViewById(R.id.hapticExplanation);
+        hapticExplanation = findViewById(R.id.hapticExplanation);
         arrow = findViewById(R.id.arrow);
     }
 
     private void initHapticExplanationText() {
-        explanation.setVisibility(View.VISIBLE);
-        String explanationText = " - : Straight \n - . . : Left \n . . - : Right \n ... : Checkpoint Reached \n - - - : Finish line";
-        explanation.setText(explanationText);
+        hapticExplanation.setVisibility(View.VISIBLE);
+        String explanationText = " - : Straight \n - . . : Left \n . . - : Right \n ... : Checkpoint \n - - - : Finish line";
+        hapticExplanation.setText(explanationText);
     }
 
     private void initSensors() {
@@ -468,7 +470,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         if (interactionType == 1) {
             switchToHapticUI();
         } else {
-            explanation.setVisibility(View.GONE);
+            hapticExplanation.setVisibility(View.GONE);
         }
     }
 
