@@ -300,13 +300,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             arrow.setVisibility(View.VISIBLE);
             Float angle = (float) diffAngles;
             arrow.setRotation(angle);
+        }
 
-            // text
-            if (!orientationText.getText().equals(message)) {
-                // Log.d(TAG, message);
-                orientationText.setText(message);
-                vibrate(patternIndex);
-            }
+        // text
+        if (!orientationText.getText().equals(message)) {
+            // Log.d(TAG, message);
+            orientationText.setText(message);
+            vibrate(patternIndex);
         }
 
         return;
