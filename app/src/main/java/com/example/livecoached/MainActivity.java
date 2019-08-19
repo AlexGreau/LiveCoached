@@ -79,6 +79,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // feedback
     private Vibrator vibrator;
     private int interactionType;
+    private boolean vibroIsForbidden;
 
     private long[] pattern;
     private int[] amplitudes;
@@ -99,11 +100,20 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // ~~~~~~~~~~~~~~~~~~~~~~ init functions ~~~~~~~~~~~~~~~~~~~~~~
     public void init() {
         setContentView(R.layout.activity_main);
-        interactionType = getIntent().getIntExtra("interactionType", 0);
+        setupConstraints();
         initSensors();
         initUI();
         initLocation();
         initPath();
+    }
+
+    public void setupConstraints() {
+        interactionType = getIntent().getIntExtra("interactionType", 0);
+        vibroIsForbidden = false;
+        if (interactionType == 1){
+            vibroIsForbidden = true;
+        }
+
     }
 
     private void initUI() {
@@ -289,7 +299,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             message = " U-Turn !!";
         }
         // image
-        if (interactionType != 1) {
+        if (interactionType != 0) {
             arrow.setVisibility(View.VISIBLE);
             Float angle = (float) diffAngles;
             arrow.setRotation(angle);
@@ -332,8 +342,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     // ~~~~~~~~~~~~~~~~~~~~~~ other functions ~~~~~~~~~~~~~~~~~~~~~~
     public void vibrate(int pat) {
-        setVibroValues(pat);
-        vibrator.vibrate(VibrationEffect.createWaveform(pattern, amplitudes, indexInPatternToRepeat));
+        if (!vibroIsForbidden) {
+            setVibroValues(pat);
+            vibrator.vibrate(VibrationEffect.createWaveform(pattern, amplitudes, indexInPatternToRepeat));
+        }
     }
 
     private void setVibroValues(int style) {
@@ -467,7 +479,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     private void loadCorrectUI() {
-        if (interactionType == 1) {
+        if (interactionType == 0) {
             switchToHapticUI();
         } else {
             hapticExplanation.setVisibility(View.GONE);
