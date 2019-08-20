@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Date;
 
 public class ClientTask extends AsyncTask<Void, Void, Void> {
 
@@ -33,10 +34,6 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
         this.activity = act;
     }
 
-    public void setMasgToServer(String s){
-        this.msgToServer = s;
-    }
-
     @Override
     protected Void doInBackground(Void... arg0) {
 
@@ -50,6 +47,8 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
             dataInputStream = new DataInputStream(socket.getInputStream());
 
             if (msgToServer != null) {
+                Date date = new Date();
+                msgToServer = msgToServer + "_" + date.getTime();
                 dataOutputStream.writeUTF(msgToServer);
                 System.out.println("sent : " + msgToServer);
             }
