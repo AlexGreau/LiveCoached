@@ -505,11 +505,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     public void handleWristGestureIN() {
         if (flickHandled) {
+            hapticExplanation.setVisibility(View.GONE);
+            distanceText.setVisibility(View.GONE);
+            findViewById(R.id.arrow).setVisibility(View.GONE);
             orientationText.setVisibility(View.VISIBLE);
             String message = "Gesture recognized, please wait";
             orientationText.setText(message);
-            distanceText.setVisibility(View.GONE);
-            findViewById(R.id.arrow).setVisibility(View.GONE);
             stopExp();
             flickHandled = true;
         }
