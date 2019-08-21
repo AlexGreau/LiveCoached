@@ -463,9 +463,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         Pattern patternRoute = Pattern.compile("route:[[0-9]+\\.[0-9]+\\-[0-9]+\\.[0-9]+;]+");
         Matcher matcherRoute = patternRoute.matcher(rep);
         if (rep.equals("reset")) {
-            startStartingActivity();
+            stopExp();
         } else if (rep.equals("stop")) {
-            startStartingActivity();
+            stopExp();
         } else if (matcherRoute.matches()) {
             extractRoute(rep);
         } else {
