@@ -85,7 +85,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private int[] amplitudes;
     private int indexInPatternToRepeat = 0;
 
+    // flags
     private boolean flickHandled = false;
+    private boolean isRunning = false;
 
 
     @Override
@@ -429,6 +431,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     private void stopExp() {
+        isRunning = false;
         if (locationUpdateRequested) {
             System.out.println("stopping the experiment");
             stopLocationUpdates();
@@ -466,7 +469,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             stopExp();
         } else if (rep.equals("stop")) {
             stopExp();
-        } else if (matcherRoute.matches()) {
+        } else if (!isRunning || matcherRoute.matches()) {
+            isRunning = true;
             extractRoute(rep);
         } else {
             // System.out.println("unexpected reply : " + rep);
