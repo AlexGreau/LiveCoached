@@ -469,7 +469,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             stopExp();
         } else if (rep.equals("stop")) {
             stopExp();
-        } else if (!isRunning || matcherRoute.matches()) {
+        } else if (!isRunning && matcherRoute.matches()) {
             isRunning = true;
             extractRoute(rep);
         } else {
