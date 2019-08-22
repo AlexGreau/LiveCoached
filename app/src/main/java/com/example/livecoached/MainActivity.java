@@ -80,6 +80,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private Vibrator vibrator;
     private int interactionType;
     private boolean vibroIsForbidden;
+    private int patternIndex = 100; // 3: strait, -1: left, 1: right
 
     private long[] pattern;
     private int[] amplitudes;
@@ -88,6 +89,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // flags
     private boolean flickHandled = false;
     private boolean isRunning = false;
+    private boolean hasSucceeded = false;
 
 
     @Override
@@ -115,7 +117,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         if (interactionType == 1){
             vibroIsForbidden = true;
         }
-
     }
 
     private void initUI() {
@@ -275,7 +276,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         double diffAngles = idealAngle - azimuth;
         double tolerance = 30; // with x degrees error allowed
         String message;
-        int patternIndex = 100; // triggers default case
+        patternIndex = 100; // triggers default case
 
         if (diffAngles - tolerance <= 0 && diffAngles + tolerance >= 0) {
             // on the good angle
@@ -309,7 +310,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
         // text
         if (!orientationText.getText().equals(message)) {
-            // Log.d(TAG, message);
             orientationText.setText(message);
             vibrate(patternIndex);
         }
@@ -337,6 +337,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     findViewById(R.id.arrow).setVisibility(View.GONE);
                     orientationText.setVisibility(View.VISIBLE);
                     String message = "Congrats on reaching the end !";
+                    hasSucceeded = true;
                     orientationText.setText(message);
                     stopExp();
                     flickHandled = true;
@@ -431,6 +432,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             locationUpdateRequested = true;
             vibrate(0);
             loadCorrectUI();
+            hasSucceeded = false;
         } else {
             System.out.println("Already locationUpdateRequested");
         }
@@ -455,7 +457,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void sendActualPosition(String state) {
         String msg = state + ":" + actualLocation.getLatitude() + "-" + actualLocation.getLongitude();
         if (state.equals("Running")) {
-            msg = msg + ":" + indexNextCP;
+            msg = msg + ":" + indexNextCP + ":" + patternIndex;
+        } else if  (state.equals("Stop")){
+            msg = msg + ":" + hasSucceeded;
         }
         myClientTask = new ClientTask(msg, this);
         myClientTask.execute();
