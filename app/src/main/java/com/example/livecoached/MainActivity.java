@@ -331,9 +331,15 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 vibrate(0);
                 orientationText.setText("reached a CP");
                 if (indexNextCP == pathToFollow.size() - 1) {
-                    // last critical point
-                    // notify arrival
-                    // let user decide to end exp
+                    // end exp
+                    hapticExplanation.setVisibility(View.GONE);
+                    distanceText.setVisibility(View.GONE);
+                    findViewById(R.id.arrow).setVisibility(View.GONE);
+                    orientationText.setVisibility(View.VISIBLE);
+                    String message = "Congrats on reaching the end !";
+                    orientationText.setText(message);
+                    stopExp();
+                    flickHandled = true;
                 } else {
                     // checkpoint passed, onto the next
                     indexNextCP++;
