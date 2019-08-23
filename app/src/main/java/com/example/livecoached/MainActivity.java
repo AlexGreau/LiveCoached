@@ -104,10 +104,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // ~~~~~~~~~~~~~~~~~~~~~~ init functions ~~~~~~~~~~~~~~~~~~~~~~
     public void init() {
         setContentView(R.layout.activity_main);
+        initLocation();
         setupConstraints();
         initSensors();
         initUI();
-        initLocation();
         initPath();
     }
 
