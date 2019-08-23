@@ -55,13 +55,11 @@ public class StartingActivity extends WearableActivity implements Decoder {
 
     private void initText() {
         text = findViewById(R.id.welcomeText);
-        text.setText(R.string.welcome_text);
     }
 
     private void initFirstOptionButton() {
         firstOption = findViewById(R.id.firstOptionButton);
         firstOption.setText("Yes !");
-        firstOption.setTextColor(Color.WHITE);
         firstOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
