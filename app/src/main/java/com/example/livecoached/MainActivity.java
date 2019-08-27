@@ -318,7 +318,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     public void checkDistance() {
-        double tolerance = 2; // error margin allowed
+        double tolerance = 1.5; // error margin allowed
         if (indexNextCP == 0) {
             System.out.println("index CP = 0");
         } else {
