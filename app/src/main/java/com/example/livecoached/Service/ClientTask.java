@@ -19,13 +19,7 @@ public class ClientTask extends AsyncTask<Void, Void, Void> {
     Decoder activity;
 
     private final int PORT = 8080;
-    private final String SERVER_IP = "192.168.43.1"; //"192.168.43.239";
-
-    public ClientTask(String addr, int port, String msgTo) {
-        dstAddress = addr;
-        dstPort = port;
-        msgToServer = msgTo;
-    }
+    private final String SERVER_IP = "192.168.43.1";
 
     public ClientTask(String msgTo, Decoder act) {
         dstAddress = SERVER_IP;

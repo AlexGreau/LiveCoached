@@ -3,7 +3,6 @@ package com.example.livecoached;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.wearable.activity.WearableActivity;
@@ -146,8 +145,8 @@ public class StartingActivity extends WearableActivity implements Decoder {
         }
     }
 
-    public void retrieveInteractionType(String message){
-        String [] msg = message.split(":");
+    public void retrieveInteractionType(String message) {
+        String[] msg = message.split(":");
         interactionType = Integer.parseInt(msg[1]);
     }
 }

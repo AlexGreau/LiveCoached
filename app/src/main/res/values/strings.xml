@@ -1,10 +1,4 @@
 <resources>
-    <string name="app_name">LiveCoached</string>
-    <!--
-    This string is used for square devices and overridden by hello_world in
-    values-round/strings.xml for round devices.
-    -->
-    <string name="hello_world">Hello Square World!</string>
     <string name="welcome_text">Are you ready ?</string>
     <string name="first_option_text">Yes</string>
     <string name="second_option_text">Yes</string>

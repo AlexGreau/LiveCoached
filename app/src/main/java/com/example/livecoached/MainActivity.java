@@ -114,7 +114,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public void setupConstraints() {
         interactionType = getIntent().getIntExtra("interactionType", 0);
         vibroIsForbidden = false;
-        if (interactionType == 1){
+        if (interactionType == 1) {
             vibroIsForbidden = true;
         }
     }
@@ -394,8 +394,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 return;
             case 3:
                 // straight
-                pattern = new long[]{longSig, pause};
-                amplitudes = new int[]{midAmpli, 0};
+                pattern = new long[]{shortSig, pause, longSig, pause, shortSig, pause};
+                amplitudes = new int[]{midAmpli, 0, midAmpli, 0, midAmpli, 0};
                 indexInPatternToRepeat = 0;
                 return;
             default:
@@ -458,7 +458,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         String msg = state + ":" + actualLocation.getLatitude() + "-" + actualLocation.getLongitude();
         if (state.equals("Running")) {
             msg = msg + ":" + indexNextCP + ":" + patternIndex;
-        } else if  (state.equals("Stop")){
+        } else if (state.equals("Stop")) {
             msg = msg + ":" + hasSucceeded;
         }
         myClientTask = new ClientTask(msg, this);
