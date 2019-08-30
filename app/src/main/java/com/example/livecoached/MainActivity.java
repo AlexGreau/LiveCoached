@@ -394,8 +394,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 return;
             case 3:
                 // straight
-                pattern = new long[]{shortSig, pause, longSig, pause, shortSig, pause};
-                amplitudes = new int[]{midAmpli, 0, midAmpli, 0, midAmpli, 0};
+                pattern = new long[]{longSig, pause};
+                amplitudes = new int[]{midAmpli, 0};
                 indexInPatternToRepeat = 0;
                 return;
             default:
