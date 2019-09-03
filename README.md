@@ -15,7 +15,9 @@ Elle décodera l'interaction que la tablette réclame, puis lancera la MainActiv
 
 ## Main Activity
 
-
+La mainActivity est lancée par la starting activity suite à l'ordre reçu par la tablette.
+Son interface change en fonction de la technique d'interaction demandée.
+Son rôle est de détecter l'orientation et la loalisation de la montre pour calculer la correction necesaire pour être sur le bon chemin via les fonctions `public void checkDistance()` et `public void checkAngle()`. La fonciton ` public void vibrate(int pat)` se charge ensuite du feedback haptique si besoin, en faisant appel à la fonction `private void setVibroValues(int style)`.
 
 ## Localisation
 La localisation de la montre se fait via un "FusedLocationProviderClient" qui formule une "LocationRequest" toutes le 2 secondes. Une fois reçue il déclanche une "LocationCallback" comme décris dans [cette page](https://developer.android.com/training/location/retrieve-current).
@@ -29,5 +31,3 @@ Dès qu'elle voudra envoyer un ordre, la montre créera une "ClientTask", une cl
 
 Pour le décodage des données, une interface "Decoder" contenant la fonction `public void decodeResponse(String rep)` permet différentes interprétations selon l'activity ayant reçu l'ordre.
 Cette interface permet de donner en paramètre un "Decoder" aux ClientTask, sans avoir a préciser l'activité en particulier.
-
-## Sauvegarde des données
